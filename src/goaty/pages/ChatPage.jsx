@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import Mascot from '../components/Mascot.jsx'
-import TypingDots from '../components/TypingDots.jsx'
+import Mascot, { goatyImg } from '../components/Mascot.jsx'
 import { useGoatyStore } from '../store.js'
 
 const QUICK_PROMPTS = [
@@ -36,6 +35,7 @@ export default function ChatPage() {
   const xpForLevel = level * 100
   const xpInLevel = profile.xp % xpForLevel
   const streakDays = profile.streak || 0
+  const isThinking = chat.some(m => m.typing)
 
   // last mission not done
   const activeMission = state.missions.find(m => !m.done) || state.missions[0]
@@ -94,7 +94,7 @@ export default function ChatPage() {
             </div>
 
             <div className="chat-hero-mascot">
-              <Mascot size="hero" />
+              <Mascot size="hero" animate={isThinking ? 'thinking' : 'none'} speed={280} />
               <div className="chat-hero-pad" />
             </div>
           </div>
@@ -110,17 +110,25 @@ export default function ChatPage() {
           <div ref={scroller} className="chat-panel-scroll">
             {chat.slice(-8).map(m => (
               <div key={m.id} className={`chat-msg ${m.role}`}>
-                {m.role === 'goaty' && (
-                  <img className="chat-msg-avatar" src="/goaty.png" alt="Goaty" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                {m.role === 'goaty' && !m.typing && (
+                  <img className="chat-msg-avatar" src={goatyImg} alt="Goaty" />
                 )}
-                <div className={`chat-msg-bubble ${m.role}`}>
-                  {m.typing ? <TypingDots /> : m.text}
-                  <div className="chat-msg-time">
-                    {new Date(m.ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                    {m.role === 'user' && ' ✓'}
+                {m.typing ? (
+                  <div className="g-thinking-pill" aria-live="polite">
+                    <Mascot size="sm" animate="thinking" speed={260} />
+                    <span>Goaty is thinking</span>
+                    <span className="dots"><span/><span/><span/></span>
                   </div>
-                </div>
-                {m.role === 'user' && (
+                ) : (
+                  <div className={`chat-msg-bubble ${m.role}`}>
+                    {m.text}
+                    <div className="chat-msg-time">
+                      {new Date(m.ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                      {m.role === 'user' && ' ✓'}
+                    </div>
+                  </div>
+                )}
+                {m.role === 'user' && !m.typing && (
                   <img className="chat-msg-avatar" src="https://i.pravatar.cc/40?img=13" alt="You" />
                 )}
               </div>

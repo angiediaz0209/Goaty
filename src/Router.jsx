@@ -13,6 +13,7 @@ import ChatPage from './goaty/pages/ChatPage.jsx'
 import CommunityPage from './goaty/pages/CommunityPage.jsx'
 import CommunityRoadmapDetail from './goaty/pages/CommunityRoadmapDetail.jsx'
 import BadgesPage from './goaty/pages/BadgesPage.jsx'
+import GamesPage from './goaty/pages/GamesPage.jsx'
 import NotificationsPage from './goaty/pages/NotificationsPage.jsx'
 import ProfilePage from './goaty/pages/ProfilePage.jsx'
 import SettingsPage from './goaty/pages/SettingsPage.jsx'
@@ -44,6 +45,7 @@ export default function Router() {
           <Route path="community" element={<CommunityPage />} />
           <Route path="community/:id" element={<CommunityRoadmapDetail />} />
           <Route path="badges" element={<BadgesPage />} />
+          <Route path="games" element={<GamesPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />

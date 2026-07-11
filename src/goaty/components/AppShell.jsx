@@ -1,5 +1,6 @@
 import { NavLink, Outlet, Link } from 'react-router-dom'
 import { useGoatyStore } from '../store.js'
+import logoUrl from '../images/logo.png'
 
 const Icon = ({ name }) => {
   const s = { width: 20, height: 20, stroke: 'currentColor', strokeWidth: 1.8, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }
@@ -11,6 +12,7 @@ const Icon = ({ name }) => {
     badge: <><path d="M12 2l2.5 4.5L20 8l-4 4 1 6-5-3-5 3 1-6L4 8l5.5-1.5L12 2z" /></>,
     user: <><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-7 8-7s8 3 8 7" /></>,
     bell: <><path d="M6 8a6 6 0 1112 0v5l2 3H4l2-3V8z" /><path d="M10 20a2 2 0 004 0" /></>,
+    game: <><rect x="2" y="7" width="20" height="12" rx="4" /><path d="M8 13h4M10 11v4" /><circle cx="16" cy="12" r="1" /><circle cx="18" cy="15" r="1" /></>,
   }
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" style={s} aria-hidden>
@@ -22,6 +24,7 @@ const Icon = ({ name }) => {
 const LINKS = [
   { to: '/app', end: true, label: 'Dashboard', icon: 'home' },
   { to: '/app/roadmap', label: 'Roadmap', icon: 'map' },
+  { to: '/app/games', label: 'Games', icon: 'game' },
   { to: '/app/chat', label: 'Chat', icon: 'chat' },
   { to: '/app/community', label: 'Community', icon: 'users' },
   { to: '/app/badges', label: 'Badges', icon: 'badge' },
@@ -35,8 +38,7 @@ export default function AppShell() {
     <div className="goaty-app g-page-pad">
       <nav className="g-nav">
         <Link to="/" className="brand">
-          <span aria-hidden>🐐</span>
-          <span>Goaty</span>
+          <img src={logoUrl} alt="Goaty" className="brand-logo" />
         </Link>
         <div className="nav-links" style={{ display: 'flex', gap: 6, marginLeft: 12 }}>
           {LINKS.map(l => (

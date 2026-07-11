@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Mascot from '../components/Mascot.jsx'
-import TypingDots from '../components/TypingDots.jsx'
 import Confetti from '../components/Confetti.jsx'
 import { useGoatyStore } from '../store.js'
 import { getLesson, personalize } from '../data/lessons.js'
@@ -28,9 +27,15 @@ function ChatDrawer({ onClose, lessonTitle }) {
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {state.chat.slice(-8).map(m => (
             <div key={m.id} className={`g-chat-row ${m.role === 'user' ? 'user' : ''}`}>
-              <div className={`g-bubble ${m.role}`}>
-                {m.typing ? <TypingDots /> : m.text}
-              </div>
+              {m.typing ? (
+                <div className="g-thinking-pill">
+                  <Mascot size="sm" animate="thinking" speed={260} />
+                  <span>Goaty is thinking</span>
+                  <span className="dots"><span/><span/><span/></span>
+                </div>
+              ) : (
+                <div className={`g-bubble ${m.role}`}>{m.text}</div>
+              )}
             </div>
           ))}
         </div>

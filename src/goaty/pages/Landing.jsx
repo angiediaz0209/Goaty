@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Mascot from '../components/Mascot.jsx'
 import Section from '../components/Section.jsx'
 import { getInterestCatalog } from '../store.js'
+import logoUrl from '../images/logo.png'
 
 const CARD_BGS = [
   { id: 'blue',   value: 'var(--blue)',   label: 'Blue' },
@@ -63,8 +64,7 @@ export default function Landing() {
       {/* --- top nav --- */}
       <header className="lv2-nav">
         <Link to="/" className="lv2-brand">
-          <span className="lv2-brand-badge"><Mascot size="sm" /></span>
-          <span>Goaty</span>
+          <img src={logoUrl} alt="Goaty" className="lv2-logo" />
         </Link>
         <nav className="lv2-links">
           <Link to="/pricing" className="lv2-link">Pricing</Link>
