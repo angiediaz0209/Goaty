@@ -1,0 +1,106 @@
+:root {
+  --bg: #0f1115;
+  --bg-card: #181b22;
+  --bg-card-2: #1f232c;
+  --border: #2a2f3a;
+  --text: #e8eaf0;
+  --muted: #8b93a4;
+  --accent: #7c5cff;
+  --accent-2: #ff8a5c;
+  --good: #34d399;
+  --bad: #fbbf24;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 80% -10%, #221b3a 0%, var(--bg) 55%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+
+header { margin-bottom: 24px; }
+h1 {
+  font-size: 34px; margin: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  letter-spacing: -0.02em;
+}
+.tagline { color: var(--muted); margin: 4px 0 0; font-size: 15px; }
+
+.layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.field-label { display: block; font-size: 13px; color: var(--muted); margin: 4px 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.topic-row, .answer-row { display: flex; gap: 10px; margin-bottom: 18px; }
+.topic-input, .answer-input {
+  flex: 1; background: var(--bg-card-2); border: 1px solid var(--border);
+  color: var(--text); padding: 12px 14px; border-radius: 10px; font-size: 15px; outline: none;
+}
+.topic-input:focus, .answer-input:focus { border-color: var(--accent); }
+
+.primary {
+  background: linear-gradient(90deg, var(--accent), #9a7bff);
+  color: white; border: none; padding: 12px 20px; border-radius: 10px;
+  font-size: 15px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  background: var(--bg-card-2); border: 1px solid var(--border); color: var(--text);
+  padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: 14px;
+}
+.chip.active { border-color: var(--accent); background: rgba(124, 92, 255, 0.15); }
+
+.lens-badge {
+  display: inline-block; font-size: 13px; color: var(--accent-2);
+  background: rgba(255, 138, 92, 0.1); padding: 6px 12px; border-radius: 999px; margin-bottom: 14px;
+}
+.explanation p { line-height: 1.6; font-size: 15.5px; margin: 0 0 14px; }
+.explanation p.grounding {
+  background: rgba(124, 92, 255, 0.1); border-left: 3px solid var(--accent);
+  padding: 10px 14px; border-radius: 0 8px 8px 0; color: #d9d3ff; font-weight: 500;
+}
+
+.check { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 16px; }
+.check-q { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+
+.feedback { padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 15px; }
+.feedback.good { background: rgba(52, 211, 153, 0.12); color: var(--good); }
+.feedback.bad { background: rgba(251, 191, 36, 0.12); color: var(--bad); }
+.switching { font-size: 13px; color: var(--muted); margin-top: 6px; font-style: italic; }
+
+.error { color: var(--bad); border-color: rgba(251, 191, 36, 0.4); }
+
+/* memory panel */
+.memory { position: sticky; top: 20px; }
+.memory-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+.memory h2 { font-size: 16px; margin: 0; }
+.link { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; text-decoration: underline; }
+
+.mem-block { margin-bottom: 18px; }
+.mem-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.mem-passions { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { background: var(--bg-card-2); border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; font-size: 13px; }
+.mem-style { font-size: 14.5px; line-height: 1.5; color: #d9d3ff; background: rgba(124, 92, 255, 0.08); padding: 10px 12px; border-radius: 10px; }
+.muted { color: var(--muted); font-size: 14px; font-style: italic; }
+
+.track { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; }
+.track-lens { color: var(--text); }
+.track-score { color: var(--good); letter-spacing: 2px; }
+
+.mem-foot { font-size: 12px; color: var(--muted); margin: 16px 0 0; line-height: 1.5; }
