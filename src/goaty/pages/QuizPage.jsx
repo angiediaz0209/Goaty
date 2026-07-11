@@ -10,14 +10,24 @@ const QUESTIONS = [
     correct: 1,
   },
   {
-    q: 'How do you "cast" a function called kamehameha?',
-    options: ['kamehameha;', 'kamehameha()', 'run kamehameha', 'do kamehameha'],
+    q: 'Which keyword calls (runs) a function named greet?',
+    options: ['greet;', 'greet()', 'call greet', 'run greet'],
     correct: 1,
   },
   {
-    q: 'Why use a function instead of copy-pasting code?',
-    options: ['It runs faster (always)', 'It looks cooler', 'Reusability & fewer bugs', 'Because your teacher said so'],
-    correct: 2,
+    q: 'Which of these is used to declare a variable in modern JavaScript?',
+    options: ['make', 'let', 'define', 'variable'],
+    correct: 1,
+  },
+  {
+    q: 'What does console.log("Hello") do?',
+    options: ['Deletes a file', 'Prints "Hello" to the console', 'Creates a webpage', 'Nothing'],
+    correct: 1,
+  },
+  {
+    q: 'What is 2 + 3 in JavaScript?',
+    options: ['"23"', '5', '6', 'NaN'],
+    correct: 1,
   },
 ]
 
