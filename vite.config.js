@@ -260,15 +260,22 @@ Rules:
 
 async function goatyChat(client, body) {
   const { messages = [], profile = {} } = body
-  const interestList = (profile.interests || []).join(', ') || 'not set yet'
+  const interestList =
+    (profile.interestLabels && profile.interestLabels.join(', ')) ||
+    (profile.interests || []).join(', ') ||
+    'not set yet'
+  const primaryLens = profile.primaryLens || (profile.interests && profile.interests[0]) || 'general'
   const system = `${GOATY_PERSONA}
 
 Learner profile:
 - Name: ${profile.name || 'friend'}
 - Interests: ${interestList}
+- Primary lens (use this world first when teaching): ${primaryLens}
 - Current goal: ${profile.goal || 'general curiosity'}
 - Level: ${profile.level || 1} | XP: ${profile.xp || 0} | Streak: ${profile.streak || 0}
-- Learning style hints: pace=${profile.style?.pace ?? 2}, depth=${profile.style?.depth ?? 2}, playfulness=${profile.style?.playfulness ?? 2}`
+- Learning style hints: pace=${profile.style?.pace ?? 2}, depth=${profile.style?.depth ?? 2}, playfulness=${profile.style?.playfulness ?? 2}
+
+Teaching rule: whenever you explain, illustrate, or give an example, reach for the learner's Primary lens or one of their listed Interests FIRST. Only fall back to generic examples if none of the interests fit naturally. Reference specific characters, moments, or vocabulary from those worlds (e.g. spells for Harry Potter, Avengers for Marvel, boss fights for gaming, K-pop choreography for K-pop).`
 
   const msgs = messages
     .filter((m) => m && m.role && m.content)

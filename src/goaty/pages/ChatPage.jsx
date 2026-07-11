@@ -1,14 +1,43 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Mascot, { goatyImg } from '../components/Mascot.jsx'
-import { useGoatyStore } from '../store.js'
+import { useGoatyStore, interestLabel, interestEmoji } from '../store.js'
 
-const QUICK_PROMPTS = [
+const FALLBACK_PROMPTS = [
   { icon: '📖', label: 'Explain a concept', prompt: 'Explain recursion like I\'m five' },
-  { icon: '❓', label: 'Quiz me', prompt: 'Quiz me on functions' },
+  { icon: '❓', label: 'Quiz me',           prompt: 'Quiz me on functions' },
   { icon: '🎯', label: 'Give me a challenge', prompt: 'Give me a small coding challenge' },
-  { icon: '🗺️', label: 'Roadmap step', prompt: 'What should I learn next?' },
+  { icon: '🗺️', label: 'Roadmap step',      prompt: 'What should I learn next?' },
 ]
+
+// Extra flavor per interest so chips feel native
+const INTEREST_FLAVOR = {
+  harry_potter: { verb: 'explain', follow: 'like a spell from Hogwarts' },
+  marvel:       { verb: 'explain', follow: 'like an origin story from the MCU' },
+  star_wars:    { verb: 'explain', follow: 'like a Jedi training scene' },
+  disney:       { verb: 'explain', follow: 'like a Disney adventure' },
+  one_piece:    { verb: 'explain', follow: 'like a Straw Hat crew arc' },
+  pokemon:      { verb: 'explain', follow: 'like a Pokémon gym battle' },
+  anime:        { verb: 'explain', follow: 'through an anime training arc' },
+  minecraft:    { verb: 'explain', follow: 'like a Minecraft build' },
+  fortnite:     { verb: 'explain', follow: 'like a Fortnite drop' },
+  gaming:       { verb: 'explain', follow: 'like a video game boss fight' },
+  basketball:   { verb: 'explain', follow: 'through a basketball play' },
+  soccer:       { verb: 'explain', follow: 'through a soccer play' },
+  sports:       { verb: 'explain', follow: 'through a sports play' },
+  f1:           { verb: 'explain', follow: 'like an F1 race strategy' },
+  kpop:         { verb: 'explain', follow: 'like K-pop choreography' },
+  taylor:       { verb: 'explain', follow: 'through a Taylor Swift era' },
+  music:        { verb: 'explain', follow: 'through music and rhythm' },
+  cooking:      { verb: 'explain', follow: 'like a recipe' },
+  travel:       { verb: 'explain', follow: 'like a travel itinerary' },
+  books:        { verb: 'explain', follow: 'like a story from a book' },
+  tv:           { verb: 'explain', follow: 'like a TV show plot' },
+  photography:  { verb: 'explain', follow: 'like framing the perfect shot' },
+  space:        { verb: 'explain', follow: 'like a mission to space' },
+  history:      { verb: 'explain', follow: 'like a moment in history' },
+  technology:   { verb: 'explain', follow: 'like a coding challenge' },
+}
 
 export default function ChatPage() {
   const { state, sendChat } = useGoatyStore()
@@ -41,6 +70,25 @@ export default function ChatPage() {
   const activeMission = state.missions.find(m => !m.done) || state.missions[0]
   const activeRoadmap = state.roadmaps[0]
   const activeNode = activeRoadmap?.nodes.find(n => n.status === 'available') || activeRoadmap?.nodes[0]
+
+  // Dynamic prompts personalized to the user's interests
+  const quickPrompts = useMemo(() => {
+    const picks = profile.interests || []
+    if (picks.length === 0) return FALLBACK_PROMPTS
+    const topic = activeNode?.title || 'my current topic'
+    const goal  = profile.goal || activeRoadmap?.subject || 'what I\'m learning'
+
+    return picks.slice(0, 4).map(id => {
+      const label = interestLabel(id)
+      const emoji = interestEmoji(id)
+      const flav  = INTEREST_FLAVOR[id] || { follow: `through ${label}` }
+      return {
+        icon: emoji,
+        label: `Teach me with ${label}`,
+        prompt: `Teach me ${topic} using examples from ${label} — ${flav.follow}. Goal: ${goal}.`,
+      }
+    })
+  }, [profile.interests, profile.goal, activeNode?.title, activeRoadmap?.subject])
 
   return (
     <div className="chat-home">
@@ -146,7 +194,7 @@ export default function ChatPage() {
           </form>
 
           <div className="chat-quick">
-            {QUICK_PROMPTS.map(q => (
+            {quickPrompts.map(q => (
               <button key={q.label} className="chat-quick-chip" onClick={() => usePrompt(q.prompt)}>
                 <span>{q.icon}</span> {q.label}
               </button>

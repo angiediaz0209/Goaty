@@ -3,26 +3,58 @@ import { useSyncExternalStore } from 'react'
 const STORAGE_KEY = 'goaty:v1'
 
 const INTEREST_CATALOG = [
-  { id: 'sports', label: 'Sports', emoji: '⚽' },
-  { id: 'anime', label: 'Anime', emoji: '🎌' },
-  { id: 'gaming', label: 'Gaming', emoji: '🎮' },
-  { id: 'music', label: 'Music', emoji: '🎧' },
-  { id: 'cooking', label: 'Cooking', emoji: '🍳' },
-  { id: 'travel', label: 'Travel', emoji: '✈️' },
-  { id: 'books', label: 'Books', emoji: '📚' },
-  { id: 'tv', label: 'TV & Film', emoji: '🎬' },
-  { id: 'technology', label: 'Technology', emoji: '💻' },
+  { id: 'sports',      label: 'Sports',        emoji: '⚽' },
+  { id: 'basketball',  label: 'Basketball',    emoji: '🏀' },
+  { id: 'soccer',      label: 'Soccer',        emoji: '⚽' },
+  { id: 'f1',          label: 'Formula 1',     emoji: '🏎️' },
+  { id: 'anime',       label: 'Anime',         emoji: '🎌' },
+  { id: 'one_piece',   label: 'One Piece',     emoji: '☠️' },
+  { id: 'pokemon',     label: 'Pokémon',       emoji: '⚡' },
+  { id: 'marvel',      label: 'Marvel',        emoji: '🦸' },
+  { id: 'harry_potter',label: 'Harry Potter',  emoji: '⚡️' },
+  { id: 'star_wars',   label: 'Star Wars',     emoji: '✨' },
+  { id: 'disney',      label: 'Disney',        emoji: '🏰' },
+  { id: 'gaming',      label: 'Gaming',        emoji: '🎮' },
+  { id: 'minecraft',   label: 'Minecraft',     emoji: '🟩' },
+  { id: 'fortnite',    label: 'Fortnite',      emoji: '🛡️' },
+  { id: 'music',       label: 'Music',         emoji: '🎧' },
+  { id: 'kpop',        label: 'K-pop',         emoji: '🎤' },
+  { id: 'taylor',      label: 'Taylor Swift',  emoji: '💫' },
+  { id: 'cooking',     label: 'Cooking',       emoji: '🍳' },
+  { id: 'travel',      label: 'Travel',        emoji: '✈️' },
+  { id: 'books',       label: 'Books',         emoji: '📚' },
+  { id: 'tv',          label: 'TV & Film',     emoji: '🎬' },
+  { id: 'photography', label: 'Photography',   emoji: '📷' },
+  { id: 'space',       label: 'Space',         emoji: '🚀' },
+  { id: 'history',     label: 'History',       emoji: '🏛️' },
+  { id: 'technology',  label: 'Technology',    emoji: '💻' },
 ]
 
 const INTEREST_LINES = {
   anime: "like a training arc in your favorite anime — level up one panel at a time",
+  one_piece: "think of it as a new island on the Grand Line — each stop teaches a skill",
+  pokemon: "battle by battle — every concept is a new type advantage to master",
+  marvel: "assemble it like the Avengers — every character (concept) has a power",
+  harry_potter: "think of it as a new spell in your grimoire — cast, refine, master",
+  star_wars: "train like a padawan — small drills lead to Jedi mastery",
+  disney: "one adventure at a time — every scene builds on the last",
   gaming: "think of it as a boss fight with a clear moveset",
+  minecraft: "gather materials first, then craft the tool you need",
+  fortnite: "loot, build, adapt — every round teaches something new",
   sports: "warm up, run the drill, then play the match",
+  basketball: "practice free throws before you take the buzzer-beater",
+  soccer: "pass, control, then finish — build possession before the shot",
+  f1: "read the track, hit your marks, then push for the fastest lap",
   music: "we'll rehearse the melody until it feels natural",
+  kpop: "learn the choreography step by step, then hit the stage",
+  taylor: "call it your Eras Tour — each chapter deepens the story",
   cooking: "mise en place first, then we cook",
   travel: "consider this our map — one landmark at a time",
   books: "we'll turn the page slowly and savor it",
   tv: "picture this as your season one finale",
+  photography: "compose the shot, adjust the light, then click",
+  space: "one small step — every concept is another lightyear covered",
+  history: "walk it like a time traveler — one era at a time",
   technology: "we'll debug step by step until it compiles",
 }
 
@@ -126,6 +158,15 @@ function getSnapshot() { return state }
 
 // ---------- helpers ----------
 export function getInterestCatalog() { return INTEREST_CATALOG }
+
+export function interestLabel(id) {
+  const item = INTEREST_CATALOG.find(x => x.id === id)
+  return item ? item.label : id
+}
+export function interestEmoji(id) {
+  const item = INTEREST_CATALOG.find(x => x.id === id)
+  return item ? item.emoji : '✨'
+}
 
 export function getMockGoatyReply(userText, profile) {
   const text = (userText || '').toLowerCase()
@@ -245,10 +286,17 @@ const actions = {
       .map(m => ({ role: m.role === 'goaty' ? 'assistant' : 'user', content: m.text }))
     history.push({ role: 'user', content: userMsg.text })
 
+    // Human-readable copy of the profile for the API
+    const enrichedProfile = {
+      ...state.profile,
+      interestLabels: (state.profile.interests || []).map(interestLabel),
+      primaryLens: interestLabel(state.profile.interests?.[0] || 'anime'),
+    }
+
     fetch('/api/goaty', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'chat', messages: history, profile: state.profile }),
+      body: JSON.stringify({ action: 'chat', messages: history, profile: enrichedProfile }),
     })
       .then(r => r.json())
       .then(data => {
