@@ -1232,13 +1232,13 @@ button { font-family: inherit; }
 }
 .lv2-brand-badge .g-mascot { width: 34px; height: 34px; }
 .lv2-logo {
-  height: 56px;
+  height: 110px;
   width: auto;
   display: block;
   filter: drop-shadow(0 4px 12px rgba(31, 41, 55, 0.10));
 }
 .brand-logo {
-  height: 46px;
+  height: 92px;
   width: auto;
   display: block;
   filter: drop-shadow(0 3px 8px rgba(31, 41, 55, 0.10));
@@ -1616,7 +1616,7 @@ button { font-family: inherit; }
 }
 .game-inner {
   background: #FFF;
-  color: var(--text);
+  color:black;
   padding: 20px;
   overflow-y: auto;
   flex: 1;
@@ -1624,7 +1624,7 @@ button { font-family: inherit; }
 }
 .game-inner .primary { background: var(--blue); color: #fff; }
 .game-inner .choice, .game-inner .match-card, .game-inner .spot, .game-inner .order-step {
-  color: var(--text);
+  color:black;
 }
 
 
