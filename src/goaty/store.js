@@ -232,14 +232,61 @@ const actions = {
   sendChat(text) {
     if (!text || !text.trim()) return
     const userMsg = { id: 'c' + Date.now(), role: 'user', text: text.trim(), ts: Date.now() }
-    setState(s => ({ ...s, chat: [...s.chat, userMsg] }))
-    const delay = 700 + Math.random() * 500
-    setTimeout(() => {
-      setState(s => {
-        const reply = getMockGoatyReply(text, s.profile)
-        return { ...s, chat: [...s.chat, { id: 'c' + (Date.now() + 1), role: 'goaty', text: reply, ts: Date.now() }] }
+    const typingId = 'typing-' + Date.now()
+    setState(s => ({
+      ...s,
+      chat: [...s.chat, userMsg, { id: typingId, role: 'goaty', text: '', typing: true, ts: Date.now() }],
+    }))
+
+    // Build history for the API from the *previous* chat (excluding the typing placeholder we just added)
+    const history = state.chat
+      .filter(m => !m.typing)
+      .slice(-20)
+      .map(m => ({ role: m.role === 'goaty' ? 'assistant' : 'user', content: m.text }))
+    history.push({ role: 'user', content: userMsg.text })
+
+    fetch('/api/goaty', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'chat', messages: history, profile: state.profile }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error)
+        const reply = data.reply || getMockGoatyReply(text, state.profile)
+        setState(s => ({
+          ...s,
+          chat: s.chat.map(m => m.id === typingId
+            ? { id: 'c' + (Date.now() + 1), role: 'goaty', text: reply, ts: Date.now() }
+            : m),
+        }))
       })
-    }, delay)
+      .catch(err => {
+        console.error('[goaty chat]', err)
+        setState(s => ({
+          ...s,
+          chat: s.chat.map(m => m.id === typingId
+            ? {
+                id: 'c' + (Date.now() + 1), role: 'goaty', ts: Date.now(),
+                text: `Sorry — I couldn't reach my brain just now (${err.message}). Make sure ANTHROPIC_API_KEY is set in .env and the dev server was restarted. Meanwhile: ${getMockGoatyReply(text, state.profile)}`,
+              }
+            : m),
+        }))
+      })
+  },
+  async generateLesson({ nodeId, title, subject, lens, nextTitle }) {
+    const res = await fetch('/api/goaty', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        action: 'lesson',
+        nodeId, title, subject, lens, nextTitle,
+        profile: state.profile,
+      }),
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+    return data
   },
   addBadge(id) {
     setState(s => {

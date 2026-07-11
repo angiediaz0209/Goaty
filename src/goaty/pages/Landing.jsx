@@ -4,104 +4,156 @@ import Mascot from '../components/Mascot.jsx'
 import Section from '../components/Section.jsx'
 import { getInterestCatalog } from '../store.js'
 
+const CARD_BGS = [
+  { id: 'blue',   value: 'var(--blue)',   label: 'Blue' },
+  { id: 'orange', value: 'var(--orange)', label: 'Orange' },
+  { id: 'red',    value: 'var(--red)',    label: 'Red' },
+  { id: 'cream',  value: 'var(--cream)',  label: 'Cream' },
+]
+
+const DOT_COLORS = [
+  { id: 'green',  value: 'var(--green)' },
+  { id: 'orange', value: 'var(--orange)' },
+  { id: 'red',    value: 'var(--red)' },
+  { id: 'cyan',   value: 'var(--cyan)' },
+  { id: 'yellow', value: 'var(--warning)' },
+]
+
 const FEATURES = [
-  { emoji: '✨', title: 'AI onboarding', body: 'Tell us three interests. We craft your first roadmap in seconds.' },
-  { emoji: '🗺️', title: 'Personalized roadmap', body: 'A skill tree taught through anime, sports, gaming — whatever you love.' },
-  { emoji: '🎯', title: 'Daily missions', body: 'Bite-sized quests keep your streak alive and your brain growing.' },
-  { emoji: '🧑‍🤝‍🧑', title: 'Community', body: 'Remix any roadmap from creators around the world.' },
+  { icon: '✦', title: 'AI onboarding',         body: 'Tell us three interests. We craft your first roadmap in seconds.', color: 'orange' },
+  { icon: '⌘', title: 'Personalized roadmap',  body: 'A skill tree taught through anime, sports, gaming — whatever you love.', color: 'blue' },
+  { icon: '◎', title: 'Daily missions',        body: 'Bite-sized quests keep your streak alive and your brain growing.', color: 'red' },
+  { icon: '☺', title: 'Community',             body: 'Remix any roadmap from creators around the world.', color: 'cyan' },
 ]
 
 const TESTIMONIALS = [
-  { name: 'Maya, 22', text: '"Learning Python through K-pop lyrics? I finally understand loops."' },
+  { name: 'Maya, 22',  text: '"Learning Python through K-pop lyrics? I finally understand loops."' },
   { name: 'Deven, 17', text: '"Streak: 42 days. Goaty is my study buddy and I love him."' },
-  { name: 'Ari, 28', text: '"The badges make me feel like I\'m collecting Pokémon while learning calculus."' },
+  { name: 'Ari, 28',   text: '"The badges make me feel like I\'m collecting Pokémon while learning calculus."' },
 ]
 
 const CHAT_DEMO = [
-  { who: 'user', text: 'Can you teach me recursion?' },
+  { who: 'user',  text: 'Can you teach me recursion?' },
   { who: 'goaty', text: 'Sure! Picture a training arc where every fight looks the same but smaller until the hero learns...' },
-  { who: 'user', text: 'Oh! Like a Russian doll?' },
+  { who: 'user',  text: 'Oh! Like a Russian doll?' },
   { who: 'goaty', text: 'Exactly! Same idea, smaller version, until we hit the base case.' },
 ]
 
 export default function Landing() {
+  const [cardBg, setCardBg] = useState('blue')
+  const bg = CARD_BGS.find(b => b.id === cardBg)
+  const isLight = cardBg === 'cream'
+
   const interests = getInterestCatalog()
   const [tIdx, setTIdx] = useState(0)
   const featuresRef = useRef(null)
+
   useEffect(() => {
     const t = setInterval(() => setTIdx(i => (i + 1) % TESTIMONIALS.length), 4200)
     return () => clearInterval(t)
   }, [])
-  const scrollToFeatures = () => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })
+
+  const scrollToFeatures = (e) => {
+    e?.preventDefault?.()
+    featuresRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   return (
-    <div className="goaty-app">
-      <header className="g-nav">
-        <Link to="/" className="brand"><span>🐐</span> Goaty</Link>
-        <div className="nav-spacer" />
-        <Link to="/pricing" className="nav-link">Pricing</Link>
-        <Link to="/muse" className="nav-link">Muse (legacy)</Link>
-        <Link to="/onboarding" className="g-btn small primary">Start free →</Link>
+    <div className="goaty-app landing-v2">
+      {/* --- top nav --- */}
+      <header className="lv2-nav">
+        <Link to="/" className="lv2-brand">
+          <span className="lv2-brand-badge"><Mascot size="sm" /></span>
+          <span>Goaty</span>
+        </Link>
+        <nav className="lv2-links">
+          <Link to="/pricing" className="lv2-link">Pricing</Link>
+          <a href="#how" className="lv2-link" onClick={scrollToFeatures}>How it works</a>
+          <Link to="/onboarding" className="lv2-cta">Start free →</Link>
+        </nav>
       </header>
 
-      {/* HERO */}
-      <section className="g-container" style={{ paddingTop: 48, paddingBottom: 48 }}>
-        <div className="g-hero-gradient" style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 40, alignItems: 'center' }}>
-          <div className="g-fade-up">
-            <div className="g-pill" style={{ marginBottom: 18 }}>NEW · Meet your learning goat</div>
-            <h1 style={{ fontFamily: 'var(--font-display)' }}>
-              Learn anything through <em style={{ fontStyle: 'italic', color: 'var(--coral)' }}>what you love.</em>
+      {/* --- HERO CARD (switchable bg) --- */}
+      <section className="lv2-container">
+        <div className={`lv2-hero ${isLight ? 'is-light' : ''}`} style={{ background: bg.value }}>
+          <div className="lv2-hero-left">
+            <span className="lv2-pill">NEW · Meet your learning goat</span>
+            <h1 className="lv2-title">
+              Learn anything through{' '}
+              <em className="lv2-title-em">what you love.</em>
             </h1>
-            <p style={{ fontSize: 20, color: 'var(--muted)', maxWidth: 520, marginTop: 12 }}>
-              Goaty turns any subject into a personalized adventure taught through your favorite hobbies — anime, sports, cooking, gaming, and more.
+            <p className="lv2-lede">
+              Goaty turns any subject into a personalized adventure
+              taught through your favorite hobbies — anime, sports,
+              cooking, gaming, and more.
             </p>
-            <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
-              <Link to="/onboarding" className="g-btn primary">Start free →</Link>
-              <button onClick={scrollToFeatures} className="g-btn ghost">See a demo</button>
+            <div className="lv2-actions">
+              <Link to="/onboarding" className="lv2-btn primary">Start free →</Link>
+              <a href="#how" onClick={scrollToFeatures} className="lv2-btn ghost">See a demo</a>
             </div>
           </div>
-          <div style={{ position: 'relative', minHeight: 320, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <Mascot size="xl" showNote />
-            <div className="g-hero-stickers">
-              <div className="sticker" style={{ top: 20, left: 0 }}>⭐ Level 1</div>
-              <div className="sticker" style={{ top: 60, right: 0, animationDelay: '.5s' }}>+50 XP</div>
-              <div className="sticker" style={{ bottom: 20, left: 20, animationDelay: '1s' }}>🔥 7-day streak</div>
+
+          <div className="lv2-hero-right">
+            <div className="lv2-mascot-wrap">
+              <span className="lv2-sticker lv2-sticker-tl">⭐ Level 1</span>
+              <span className="lv2-sticker lv2-sticker-tr lv2-sticker-orange">+50 XP</span>
+              <Mascot size="xl" />
+              <span className="lv2-sticker lv2-sticker-br lv2-sticker-red">🔥 7-day streak</span>
+            </div>
+            <div className="lv2-dots">
+              {DOT_COLORS.map(d => (
+                <span key={d.id} className="lv2-dot" style={{ background: d.value }} />
+              ))}
             </div>
           </div>
         </div>
-      </section>
 
-      {/* FEATURES */}
-      <section className="g-container" ref={featuresRef}>
-        <Section title="Why Goaty?" subtitle="Delight-first tools for lifelong learners.">
-          <div className="g-grid-4">
-            {FEATURES.map(f => (
-              <div key={f.title} className="g-card">
-                <div style={{ fontSize: 34 }}>{f.emoji}</div>
-                <div style={{ fontWeight: 800, fontSize: 18, marginTop: 8 }}>{f.title}</div>
-                <div style={{ color: 'var(--muted)', marginTop: 6, lineHeight: 1.5 }}>{f.body}</div>
-              </div>
-            ))}
-          </div>
-        </Section>
+        {/* card background picker */}
+        <div className="lv2-picker">
+          <span className="lv2-picker-label">Card background:</span>
+          {CARD_BGS.map(b => (
+            <button
+              key={b.id}
+              onClick={() => setCardBg(b.id)}
+              className={`lv2-swatch ${cardBg === b.id ? 'active' : ''}`}
+              style={{ background: b.value }}
+              aria-label={b.label}
+            />
+          ))}
+        </div>
 
-        {/* MEET GOATY */}
+        {/* --- FEATURES --- */}
+        <div ref={featuresRef} id="how">
+          <Section title="Why Goaty?" subtitle="Delight-first tools for lifelong learners.">
+            <div className="feat-grid">
+              {FEATURES.map(f => (
+                <div key={f.title} className={`feat-tile feat-${f.color}`}>
+                  <div className="feat-icon">{f.icon}</div>
+                  <div className="feat-title">{f.title}</div>
+                  <div className="feat-body">{f.body}</div>
+                </div>
+              ))}
+            </div>
+          </Section>
+        </div>
+
+        {/* --- MEET GOATY --- */}
         <Section title="Meet Goaty" subtitle="Your personalized, always-patient learning companion.">
-          <div className="g-card g-card-lg" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24, alignItems: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div className="meet-card">
+            <div className="meet-mascot">
               <Mascot size="lg" />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="meet-chat">
               {CHAT_DEMO.map((m, i) => (
-                <div key={i} className={`g-chat-row ${m.who === 'user' ? 'user' : ''} g-fade-up`} style={{ animationDelay: `${i * 0.15}s` }}>
-                  <div className={`g-bubble ${m.who}`}>{m.text}</div>
+                <div key={i} className={`meet-row ${m.who === 'user' ? 'user' : ''} g-fade-up`} style={{ animationDelay: `${i * 0.15}s` }}>
+                  <div className={`meet-bubble ${m.who}`}>{m.text}</div>
                 </div>
               ))}
             </div>
           </div>
         </Section>
 
-        {/* INTERESTS */}
+        {/* --- INTERESTS --- */}
         <Section title="Learn through what you love" subtitle="Pick your flavor — we do the rest.">
           <div className="g-row" style={{ justifyContent: 'center' }}>
             {interests.map(i => (
@@ -112,20 +164,20 @@ export default function Landing() {
           </div>
         </Section>
 
-        {/* TESTIMONIALS */}
+        {/* --- TESTIMONIALS --- */}
         <Section title="Loved by curious minds">
           <div className="g-card g-card-lg" style={{ minHeight: 160, textAlign: 'center', maxWidth: 720, margin: '0 auto' }}>
             <p style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontStyle: 'italic' }}>{TESTIMONIALS[tIdx].text}</p>
             <div style={{ color: 'var(--muted)', marginTop: 8 }}>— {TESTIMONIALS[tIdx].name}</div>
             <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 12 }}>
               {TESTIMONIALS.map((_, i) => (
-                <span key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i === tIdx ? 'var(--coral)' : 'rgba(27,30,59,0.16)' }} />
+                <span key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i === tIdx ? 'var(--orange)' : 'rgba(31,41,55,0.20)' }} />
               ))}
             </div>
           </div>
         </Section>
 
-        {/* PRICING TEASER */}
+        {/* --- PRICING TEASER --- */}
         <Section title="Ready to grow?">
           <div className="g-card g-card-lg" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 20, alignItems: 'center' }}>
             <div>
@@ -135,14 +187,11 @@ export default function Landing() {
             <Link to="/pricing" className="g-btn primary">See pricing →</Link>
           </div>
         </Section>
-
-        <footer style={{ marginTop: 64, padding: '32px 0', color: 'var(--muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
-          <div>© {new Date().getFullYear()} Goaty. Learning grazing grounds.</div>
-          <div style={{ marginTop: 8, fontSize: 13 }}>
-            <Link to="/pricing">Pricing</Link> · <Link to="/muse">Muse</Link> · <Link to="/onboarding">Get started</Link>
-          </div>
-        </footer>
       </section>
+
+      <footer className="lv2-footer">
+        © {new Date().getFullYear()} Goaty · <Link to="/pricing">Pricing</Link> · <Link to="/muse">Muse (legacy)</Link> · <Link to="/onboarding">Get started</Link>
+      </footer>
     </div>
   )
 }

@@ -239,6 +239,180 @@ function tutorApi() {
   }
 }
 
+/* ============================================================
+ * Goaty API — real Anthropic-backed brain for the new app.
+ *   POST /api/goaty
+ *   body: { action: 'chat' | 'lesson', ... }
+ * ============================================================ */
+
+const GOATY_MODEL = 'claude-sonnet-4-6'
+
+const GOATY_PERSONA = `You are Goaty, an adorable, encouraging AI learning coach mascot.
+Personality: warm, playful, occasionally uses the goat emoji, celebrates small wins, never condescending.
+Your superpower: you teach ANY subject through examples from the learner's own interests
+(sports, anime, gaming, music, cooking, travel, books, TV/film, technology, etc.).
+Rules:
+- Be concise: 2-5 short sentences per chat reply.
+- If the learner has interests listed, weave one in naturally — do not force it.
+- Never lecture; teach through story, analogy, and tiny examples.
+- Encourage curiosity. If they're stuck, offer a smaller next step.
+- Plain conversational text. No markdown headers, no JSON in chat replies.`
+
+async function goatyChat(client, body) {
+  const { messages = [], profile = {} } = body
+  const interestList = (profile.interests || []).join(', ') || 'not set yet'
+  const system = `${GOATY_PERSONA}
+
+Learner profile:
+- Name: ${profile.name || 'friend'}
+- Interests: ${interestList}
+- Current goal: ${profile.goal || 'general curiosity'}
+- Level: ${profile.level || 1} | XP: ${profile.xp || 0} | Streak: ${profile.streak || 0}
+- Learning style hints: pace=${profile.style?.pace ?? 2}, depth=${profile.style?.depth ?? 2}, playfulness=${profile.style?.playfulness ?? 2}`
+
+  const msgs = messages
+    .filter((m) => m && m.role && m.content)
+    .map((m) => ({ role: m.role === 'goaty' ? 'assistant' : m.role, content: String(m.content) }))
+
+  const res = await client.messages.create({
+    model: GOATY_MODEL,
+    max_tokens: 500,
+    system,
+    messages: msgs.length ? msgs : [{ role: 'user', content: 'Say hi!' }],
+  })
+  const text = res.content.find((b) => b.type === 'text')?.text ?? ''
+  return { reply: text }
+}
+
+// Lesson generation — matches src/goaty/data/lessons.js shape
+const s = { type: 'string' }
+const i = { type: 'integer' }
+const arrOf = (items) => ({ type: 'array', items })
+
+const lessonSchema = {
+  type: 'object',
+  properties: {
+    id: s, title: s, subtitle: s, estimatedTime: i,
+    difficulty: { type: 'string', enum: ['Easy', 'Medium', 'Hard'] },
+    xpReward: i, mascotMood: s,
+    learningGoal: s, story: s, explanation: s, visualAnalogy: s,
+    examples: arrOf({
+      type: 'object',
+      properties: { code: s, explain: s },
+      required: ['code', 'explain'], additionalProperties: false,
+    }),
+    challenge: {
+      type: 'object',
+      properties: { prompt: s, placeholder: s },
+      required: ['prompt', 'placeholder'], additionalProperties: false,
+    },
+    solution: {
+      type: 'object',
+      properties: { code: s, explain: s },
+      required: ['code', 'explain'], additionalProperties: false,
+    },
+    goatyTip: s, funFact: s,
+    commonMistakes: arrOf(s),
+    quiz: arrOf({
+      type: 'object',
+      properties: { q: s, choices: arrOf(s), correct: i, explain: s },
+      required: ['q', 'choices', 'correct', 'explain'], additionalProperties: false,
+    }),
+    unlockNext: s,
+  },
+  required: [
+    'id', 'title', 'subtitle', 'estimatedTime', 'difficulty', 'xpReward', 'mascotMood',
+    'learningGoal', 'story', 'explanation', 'visualAnalogy', 'examples',
+    'challenge', 'solution', 'goatyTip', 'funFact', 'commonMistakes', 'quiz', 'unlockNext',
+  ],
+  additionalProperties: false,
+}
+
+async function goatyLesson(client, body) {
+  const {
+    nodeId = 'gen-' + Date.now(),
+    title = 'A New Concept',
+    subject = 'the topic',
+    lens = 'anime',
+    profile = {},
+    nextTitle = 'the next chapter',
+  } = body
+  const interests = (profile.interests || []).join(', ') || lens
+
+  const userPrompt = `Design a complete micro-lesson for a learning platform called Goaty.
+
+Topic: "${title}"
+Subject area: "${subject}"
+Primary interest to teach through: "${lens}"
+Other interests the learner cares about: "${interests}"
+When you announce the next chapter in unlockNext, use: "${nextTitle}"
+Node id to return: "${nodeId}"
+
+Structure to fill via the tool call:
+1. Header: title (given), subtitle (one-liner), estimatedTime minutes (5-10), difficulty (Easy/Medium/Hard), xpReward (40-150), mascotMood (single word).
+2. learningGoal: 2-3 short paragraphs. What they'll learn, why it matters, where they'll use it.
+3. story: 3-5 lines that open through the "${lens}" world. Use \\n for line breaks.
+4. explanation: conversational, 3-6 short paragraphs. No jargon. Analogies over definitions.
+5. visualAnalogy: one paragraph describing a vivid mental image.
+6. examples: exactly 2. First basic; second uses the "${lens}" world. Each has "code" + "explain".
+7. challenge: a prompt to try + a placeholder line hinting at the shape.
+8. solution: answer code + short "explain" of why it works.
+9. goatyTip: one warm one-liner ending with the goat emoji.
+10. funFact: one interesting related trivia line.
+11. commonMistakes: exactly 3 short strings.
+12. quiz: exactly 5 questions. Mix multiple-choice and true/false. Each item has "q", "choices" (2-4 strings), 0-based "correct" index, and a one-sentence "explain".
+13. unlockNext: the given next chapter title.
+
+Style rules:
+- Friendly, energetic, never robotic.
+- Short paragraphs, beginner-friendly (age 12+, ESL-safe).
+- Return raw text values (no markdown headers).`
+
+  const res = await client.messages.create({
+    model: GOATY_MODEL,
+    max_tokens: 4000,
+    system: GOATY_PERSONA,
+    tools: [{ name: 'return_lesson', description: 'Return the full lesson JSON.', input_schema: lessonSchema }],
+    tool_choice: { type: 'tool', name: 'return_lesson' },
+    messages: [{ role: 'user', content: userPrompt }],
+  })
+  const block = res.content.find((b) => b.type === 'tool_use')
+  if (!block) throw new Error('Goaty did not return a lesson')
+  return block.input
+}
+
+function goatyApi() {
+  let client
+  return {
+    name: 'goaty-api',
+    configureServer(server) {
+      server.middlewares.use('/api/goaty', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          return res.end('Method Not Allowed')
+        }
+        res.setHeader('content-type', 'application/json')
+        try {
+          if (!process.env.ANTHROPIC_API_KEY) {
+            throw new Error('ANTHROPIC_API_KEY is not set. Add it to .env and restart the dev server.')
+          }
+          if (!client) client = new Anthropic()
+          const body = await readJson(req)
+          let result
+          if (body.action === 'chat') result = await goatyChat(client, body)
+          else if (body.action === 'lesson') result = await goatyLesson(client, body)
+          else throw new Error('Unknown action: ' + body.action)
+          res.end(JSON.stringify(result))
+        } catch (e) {
+          console.error('[goaty] error:', e?.message || e)
+          res.statusCode = 500
+          res.end(JSON.stringify({ error: String(e?.message || e) }))
+        }
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), tutorApi()],
+  plugins: [react(), tutorApi(), goatyApi()],
 })
