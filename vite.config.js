@@ -19,7 +19,7 @@ try {
 const MODEL = 'claude-opus-4-8' // most capable model; swap to 'claude-sonnet-5' for lower latency
 
 // The tutor's whole personality lives here. This is the real IP of the app.
-const SYSTEM = `You are Muse, a tutor who teaches ANY concept exclusively through the lens of what the learner loves (their "passions" — e.g. soccer, anime, art).
+const SYSTEM = `You are Goaty, a tutor who teaches ANY concept exclusively through the lens of what the learner loves (their "passions" — e.g. soccer, anime, art).
 
 Rules for every explanation:
 - Teach the concept ENTIRELY inside the chosen passion's world. Every example, character, and mechanic must come from that world. Do not explain the concept generically first.
@@ -80,7 +80,7 @@ async function callClaude(client, userText, toolName, schema) {
     messages: [{ role: 'user', content: userText }],
   })
   const block = res.content.find((b) => b.type === 'tool_use')
-  if (!block) throw new Error('Muse did not return structured output')
+  if (!block) throw new Error('Goaty did not return structured output')
   return block.input
 }
 
@@ -114,7 +114,103 @@ async function handle(client, body) {
       `Return the result via the tool.`
     return callClaude(client, userText, 'grade_and_adapt', respondSchema)
   }
+  if (action === 'chat') {
+    return chat(client, body)
+  }
+  if (action === 'game') {
+    return game(client, body)
+  }
   throw new Error('unknown action: ' + action)
+}
+
+// ---- Adaptive game engine: one action, four game types, all personalized ----
+const arr = (items) => ({ type: 'array', items })
+const obj = (properties, required) => ({ type: 'object', properties, required, additionalProperties: false })
+const str = { type: 'string' }
+
+const gameSchemas = {
+  quiz_battle: obj({
+    theme: str, intro: str,
+    rounds: arr(obj({
+      question: str,
+      choices: arr(str),
+      correctIndex: { type: 'integer' },
+      why: str,
+    }, ['question', 'choices', 'correctIndex', 'why'])),
+  }, ['theme', 'intro', 'rounds']),
+
+  match_pairs: obj({
+    theme: str, intro: str,
+    pairs: arr(obj({ concept: str, metaphor: str }, ['concept', 'metaphor'])),
+  }, ['theme', 'intro', 'pairs']),
+
+  spot_mistake: obj({
+    theme: str, intro: str,
+    statements: arr(obj({ text: str }, ['text'])),
+    wrongIndex: { type: 'integer' },
+    correction: str,
+  }, ['theme', 'intro', 'statements', 'wrongIndex', 'correction']),
+
+  order_steps: obj({
+    theme: str, intro: str,
+    steps: arr(obj({ label: str }, ['label'])),
+    goalLabel: str,
+  }, ['theme', 'intro', 'steps', 'goalLabel']),
+}
+
+const gamePrompts = {
+  quiz_battle: (topic, lens, style) =>
+    `Design a QUIZ BATTLE mini-game that tests real understanding of "${topic}", themed entirely in the world of ${lens}. ` +
+    `Frame it as an exciting contest in that world (a penalty shootout, a boss fight, a cook-off, etc.). ` +
+    `Give a short in-world "theme" name and a one-sentence "intro". Then 4 "rounds": each is a multiple-choice question (3-4 "choices") ` +
+    `that tests the actual concept (not trivia about ${lens}), with 0-based "correctIndex" and a one-sentence "why". ` +
+    `Adapt framing/difficulty to how this learner learns: ${style || 'unknown'}.`,
+
+  match_pairs: (topic, lens, style) =>
+    `Design a MATCHING mini-game for "${topic}", themed in the world of ${lens}. Give a "theme" and one-sentence "intro". ` +
+    `Then exactly 5 "pairs": each links a real sub-concept of ${topic} ("concept") to a vivid, ACCURATE ${lens}-world metaphor for it ("metaphor"). ` +
+    `Keep both sides short (a few words). Learner style: ${style || 'unknown'}.`,
+
+  spot_mistake: (topic, lens, style) =>
+    `Design a SPOT-THE-MISTAKE mini-game for "${topic}", themed in the world of ${lens}. Give a "theme" and one-sentence "intro". ` +
+    `Then exactly 4 "statements" that explain aspects of ${topic} using ${lens} metaphors — exactly ONE (at 0-based "wrongIndex") contains a genuine conceptual error; ` +
+    `the other three must be correct. Provide a "correction" explaining what's actually true. Learner style: ${style || 'unknown'}.`,
+
+  order_steps: (topic, lens, style) =>
+    `Design an ORDER-THE-STEPS mini-game for "${topic}", themed in the world of ${lens}. Give a "theme", a one-sentence "intro", and a short in-world victory phrase "goalLabel". ` +
+    `Then "steps": 4-5 steps that must happen in a specific correct order to carry out or understand ${topic}, each phrased as an action in the ${lens} world but faithful to the real process. ` +
+    `Return them IN THE CORRECT ORDER. Learner style: ${style || 'unknown'}.`,
+}
+
+async function game(client, body) {
+  const { gameType, topic, lens, learnerStyle = '' } = body
+  const schema = gameSchemas[gameType]
+  const prompt = gamePrompts[gameType]
+  if (!schema || !prompt) throw new Error('unknown gameType: ' + gameType)
+  return callClaude(client, prompt(topic, lens, learnerStyle), 'build_game', schema)
+}
+
+// Free-form conversation about the current lesson, staying inside the learner's world.
+async function chat(client, body) {
+  const { topic, lensUsed, explanation, learnerStyle = '', history = [] } = body
+  const chatSystem =
+    `You are Goaty, a warm, encouraging tutor. You are having a live conversation with a learner about the concept "${topic}", which you taught them through the lens of ${lensUsed}.\n\n` +
+    `The explanation you gave was:\n"""\n${explanation}\n"""\n\n` +
+    `Now answer their follow-up questions and reactions conversationally. Rules:\n` +
+    `- Stay inside the ${lensUsed} world — use concrete examples and characters from it.\n` +
+    `- Keep the underlying concept ACCURATE; if the metaphor is about to mislead, say so and correct it in one plain sentence.\n` +
+    `- Keep replies short: 2-4 sentences. Be warm and a little playful.\n` +
+    `- If they seem stuck, try a fresh angle within the same world rather than repeating yourself.\n` +
+    `- Plain conversational text only. No JSON, no headers.\n` +
+    `What you know about how this learner learns: ${learnerStyle || 'nothing yet'}.`
+  const res = await client.messages.create({
+    model: MODEL,
+    max_tokens: 600,
+    system: chatSystem,
+    messages: history.map((m) => ({ role: m.role, content: m.content })),
+  })
+  const text = res.content.find((b) => b.type === 'text')?.text ?? ''
+  return { reply: text }
 }
 
 function tutorApi() {

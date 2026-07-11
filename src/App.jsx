@@ -1,4 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
+import Game from './Games.jsx'
+
+const GAME_TYPES = [
+  { id: 'quiz_battle', label: '⚔️ Quiz Battle' },
+  { id: 'match_pairs', label: '🃏 Match Pairs' },
+  { id: 'spot_mistake', label: '🔍 Spot the Mistake' },
+  { id: 'order_steps', label: '🔢 Order the Steps' },
+]
 
 const DEFAULT_PASSIONS = ['Soccer ⚽', 'Anime 🎌', 'Art 🎨', 'Cooking 🍳', 'Music 🎧', 'Gaming 🎮']
 const STORAGE_KEY = 'muse-profile-v1'
@@ -14,14 +22,14 @@ function loadProfile() {
 // strip the trailing emoji for cleaner lens names in prompts / matching
 const bare = (p) => p.replace(/\s*\p{Emoji}.*$/u, '').trim() || p
 
-async function askMuse(payload) {
+async function askGoaty(payload) {
   const res = await fetch('/api/tutor', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(payload),
   })
   const data = await res.json()
-  if (!res.ok || data.error) throw new Error(data.error || 'Muse had trouble responding.')
+  if (!res.ok || data.error) throw new Error(data.error || 'Goaty had trouble responding.')
   return data
 }
 
@@ -51,6 +59,70 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const answerRef = useRef(null)
+  const [chatMsgs, setChatMsgs] = useState([]) // { role, content }
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const chatEndRef = useRef(null)
+  const [game, setGame] = useState(null) // { type, spec, lens }
+  const [gameLoading, setGameLoading] = useState(false)
+
+  async function launchGame(gameType) {
+    if (!topic.trim() || profile.passions.length === 0) return
+    const lens = lesson?.lensUsed || pickStartLens()
+    setGameLoading(true); setError('')
+    try {
+      const spec = await askMuse({
+        action: 'game',
+        gameType,
+        topic: topic.trim(),
+        lens,
+        learnerStyle: profile.learnerStyle,
+      })
+      setGame({ type: gameType, spec, lens })
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setGameLoading(false)
+    }
+  }
+
+  function finishGame(passed) {
+    const lens = game?.lens || 'game'
+    setProfile((pr) => ({
+      ...pr,
+      xp: (pr.xp || 0) + (passed ? 10 : 3),
+      lensLog: [...pr.lensLog, { lens, topic: topic.trim(), worked: passed }],
+    }))
+    setGame(null)
+  }
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatMsgs, chatLoading])
+
+  async function sendChat() {
+    const q = chatInput.trim()
+    if (!q || !lesson) return
+    const history = [...chatMsgs, { role: 'user', content: q }]
+    setChatMsgs(history)
+    setChatInput('')
+    setChatLoading(true)
+    try {
+      const data = await askGoaty({
+        action: 'chat',
+        topic: topic.trim(),
+        lensUsed: lesson.lensUsed,
+        explanation: lesson.explanation,
+        learnerStyle: profile.learnerStyle,
+        history,
+      })
+      setChatMsgs((m) => [...m, { role: 'assistant', content: data.reply }])
+    } catch (e) {
+      setChatMsgs((m) => [...m, { role: 'assistant', content: '⚠️ ' + e.message }])
+    } finally {
+      setChatLoading(false)
+    }
+  }
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
@@ -73,10 +145,10 @@ export default function App() {
 
   async function startLesson() {
     if (!topic.trim() || profile.passions.length === 0) return
-    setLoading(true); setError(''); setFeedback(null); setAnswer('')
+    setLoading(true); setError(''); setFeedback(null); setAnswer(''); setChatMsgs([])
     const activeLens = pickStartLens()
     try {
-      const data = await askMuse({
+      const data = await askGoaty({
         action: 'teach',
         topic: topic.trim(),
         activeLens,
@@ -97,7 +169,7 @@ export default function App() {
     if (!answer.trim() || !lesson) return
     setLoading(true); setError('')
     try {
-      const data = await askMuse({
+      const data = await askGoaty({
         action: 'respond',
         topic: topic.trim(),
         lensUsed: lesson.lensUsed,
@@ -115,10 +187,10 @@ export default function App() {
         lensLog: [...pr.lensLog, { lens: lesson.lensUsed, topic: topic.trim(), worked: data.correct }],
       }))
       if (data.switchedLens && data.explanation) {
-        // Muse re-taught through a new world — the "it learned me" moment
+        // Goaty re-taught through a new world — the "it learned me" moment
         setLesson({ lensUsed: data.lensUsed, explanation: data.explanation, checkQuestion: data.checkQuestion })
         setTriedLenses((t) => [...t, data.lensUsed])
-        setAnswer('')
+        setAnswer(''); setChatMsgs([])
         setTimeout(() => { setFeedback(null); answerRef.current?.focus() }, 1800)
       }
     } catch (e) {
@@ -140,8 +212,8 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>Muse</h1>
-        <p className="tagline">Learn anything through the things you already love.</p>
+        <h1>Goaty <span className="goat">🐐</span></h1>
+        <p className="tagline">Your GOAT study buddy — learn anything through the things you already love.</p>
       </header>
 
       <div className="layout">
@@ -205,14 +277,56 @@ export default function App() {
                   </button>
                 </div>
               </div>
+
+              <div className="chat">
+                <div className="chat-head">💬 Confused about anything? Ask Goaty — it'll answer in your {lesson.lensUsed} world.</div>
+                {chatMsgs.length > 0 && (
+                  <div className="chat-thread">
+                    {chatMsgs.map((m, i) => (
+                      <div key={i} className={'bubble ' + m.role}>{m.content}</div>
+                    ))}
+                    {chatLoading && <div className="bubble assistant typing">Goaty is thinking…</div>}
+                    <div ref={chatEndRef} />
+                  </div>
+                )}
+                <div className="answer-row">
+                  <input
+                    className="answer-input"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && sendChat()}
+                    placeholder={'e.g. "wait, I don\'t get the base case"'}
+                    disabled={chatLoading}
+                  />
+                  <button className="primary" onClick={sendChat} disabled={chatLoading || !chatInput.trim()}>
+                    {chatLoading ? '…' : 'Ask'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="games">
+                <div className="games-head">🎮 Test yourself — games themed to your <b>{lesson.lensUsed}</b> world</div>
+                <div className="game-buttons">
+                  {GAME_TYPES.map((g) => (
+                    <button key={g.id} className="game-launch" onClick={() => launchGame(g.id)} disabled={gameLoading}>
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </section>
           )}
         </main>
 
         <aside className="card memory">
           <div className="memory-head">
-            <h2>What Muse knows about you</h2>
+            <h2>What Goaty knows about you</h2>
             <button className="link" onClick={resetMemory}>reset</button>
+          </div>
+
+          <div className="xp-row">
+            <span className="xp-badge">🐐 {profile.xp || 0} XP</span>
+            <span className="xp-note">earned by playing</span>
           </div>
 
           <div className="mem-block">
@@ -225,7 +339,7 @@ export default function App() {
           <div className="mem-block">
             <div className="mem-label">How you learn</div>
             <div className={profile.learnerStyle ? 'mem-style' : 'muted'}>
-              {profile.learnerStyle || 'Muse is still figuring this out…'}
+              {profile.learnerStyle || 'Goaty is still figuring this out…'}
             </div>
           </div>
 
@@ -242,9 +356,22 @@ export default function App() {
             ))}
           </div>
 
-          <p className="mem-foot">This memory persists across lessons — Muse adapts to you over time.</p>
+          <p className="mem-foot">This memory persists across lessons — Goaty adapts to you over time.</p>
         </aside>
       </div>
+
+      {(game || gameLoading) && (
+        <div className="game-overlay" onClick={(e) => { if (e.target === e.currentTarget && !gameLoading) setGame(null) }}>
+          <div className="game-modal">
+            {!gameLoading && <button className="game-close" onClick={() => setGame(null)}>×</button>}
+            {gameLoading ? (
+              <div className="game-loading">🐐 Goaty is building your game…</div>
+            ) : (
+              <Game gameType={game.type} spec={game.spec} onFinish={finishGame} />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
