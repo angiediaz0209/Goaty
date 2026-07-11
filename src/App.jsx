@@ -87,6 +87,7 @@ export default function App() {
   const [game, setGame] = useState(null) // { type, spec, lens }
   const [gameLoading, setGameLoading] = useState(false)
   const [path, setPath] = useState(window.location.pathname) // New state for path
+  console.log('Current path:', path) // Debugging path
 
   // Listen for path changes
   useEffect(() => {

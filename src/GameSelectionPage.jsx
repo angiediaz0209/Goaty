@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { GAME_TYPES } from './App.jsx'
 
+console.log('GameSelectionPage GAME_TYPES:', GAME_TYPES)
+
 export default function GameSelectionPage({ launchGame, gameLoading, profile }) {
   const [topic, setTopic] = useState('')
   const [lens, setLens] = useState('')
