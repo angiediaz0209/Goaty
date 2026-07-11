@@ -8,6 +8,26 @@ const GAME_TYPES = [
   { id: 'order_steps', label: '🔢 Order the Steps' },
 ]
 
+// One-click demos — real live generation, no blank page.
+const EXAMPLES = [
+  { label: 'Recursion × Soccer ⚽', topic: 'recursion', passions: ['Soccer ⚽'] },
+  { label: 'Compound interest × Anime 🎌', topic: 'compound interest', passions: ['Anime 🎌'] },
+  { label: 'Photosynthesis × Cooking 🍳', topic: 'photosynthesis', passions: ['Cooking 🍳'] },
+  { label: 'The French Revolution × Gaming 🎮', topic: 'the French Revolution', passions: ['Gaming 🎮'] },
+]
+
+// A seeded learner so the memory panel + adaptation story is visible instantly.
+const DEMO_PROFILE = {
+  passions: ['Soccer ⚽', 'Anime 🎌', 'Art 🎨'],
+  learnerStyle: 'Learns best through stories and characters — narrative analogies land better than spatial/positional ones.',
+  lensLog: [
+    { lens: 'Anime', topic: 'variables', worked: true },
+    { lens: 'Soccer', topic: 'recursion', worked: false },
+    { lens: 'Anime', topic: 'recursion', worked: true },
+  ],
+  xp: 40,
+}
+
 const DEFAULT_PASSIONS = ['Soccer ⚽', 'Anime 🎌', 'Art 🎨', 'Cooking 🍳', 'Music 🎧', 'Gaming 🎮']
 const STORAGE_KEY = 'muse-profile-v1'
 
@@ -137,22 +157,22 @@ export default function App() {
     }))
 
   // choose the lens with the best track record, else the first passion
-  function pickStartLens() {
+  function pickStartLens(passions = profile.passions) {
     const wins = new Set(profile.lensLog.filter((l) => l.worked).map((l) => l.lens))
-    const preferred = profile.passions.find((p) => wins.has(bare(p)))
-    return bare(preferred || profile.passions[0])
+    const preferred = passions.find((p) => wins.has(bare(p)))
+    return bare(preferred || passions[0])
   }
 
-  async function startLesson() {
-    if (!topic.trim() || profile.passions.length === 0) return
-    setLoading(true); setError(''); setFeedback(null); setAnswer(''); setChatMsgs([])
-    const activeLens = pickStartLens()
+  async function runLesson(topicVal, passionsVal) {
+    if (!topicVal.trim() || passionsVal.length === 0) return
+    setLoading(true); setError(''); setFeedback(null); setAnswer(''); setChatMsgs([]); setLesson(null)
+    const activeLens = pickStartLens(passionsVal)
     try {
       const data = await askGoaty({
         action: 'teach',
-        topic: topic.trim(),
+        topic: topicVal.trim(),
         activeLens,
-        otherPassions: profile.passions.map(bare).filter((p) => p !== activeLens),
+        otherPassions: passionsVal.map(bare).filter((p) => p !== activeLens),
         learnerStyle: profile.learnerStyle,
       })
       setLesson(data)
@@ -163,6 +183,19 @@ export default function App() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const startLesson = () => runLesson(topic, profile.passions)
+
+  function runExample(ex) {
+    setTopic(ex.topic)
+    setProfile((pr) => ({ ...pr, passions: ex.passions }))
+    runLesson(ex.topic, ex.passions)
+  }
+
+  function loadDemo() {
+    setProfile(DEMO_PROFILE)
+    setTopic('the water cycle')
   }
 
   async function submitAnswer() {
@@ -245,6 +278,15 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+            <div className="examples">
+              <span className="examples-label">Or try an example:</span>
+              {EXAMPLES.map((ex) => (
+                <button key={ex.label} className="example-chip" onClick={() => runExample(ex)} disabled={loading}>
+                  {ex.label}
+                </button>
+              ))}
+            </div>
           </section>
 
           {error && <div className="card error">⚠️ {error}</div>}
@@ -321,7 +363,10 @@ export default function App() {
         <aside className="card memory">
           <div className="memory-head">
             <h2>What Goaty knows about you</h2>
-            <button className="link" onClick={resetMemory}>reset</button>
+            <div className="mem-actions">
+              <button className="link" onClick={loadDemo}>demo learner</button>
+              <button className="link" onClick={resetMemory}>reset</button>
+            </div>
           </div>
 
           <div className="xp-row">
