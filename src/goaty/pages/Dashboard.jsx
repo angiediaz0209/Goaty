@@ -50,13 +50,13 @@ export default function Dashboard() {
       <Confetti trigger={burst} />
 
       {/* Greeting */}
-      <div className="g-card g-card-lg" style={{ display: 'grid', gridTemplateColumns: '120px 1fr auto', gap: 20, alignItems: 'center' }}>
+      <div className="g-card g-card-lg g-welcome" style={{ display: 'grid', gridTemplateColumns: '120px 1fr auto', gap: 20, alignItems: 'center' }}>
         <div><Mascot size="md" /></div>
         <div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800 }}>
+          <div className="g-welcome-title">
             {greeting()}{profile.name ? `, ${profile.name}` : ''} 👋
           </div>
-          <div style={{ color: 'var(--muted)', marginTop: 4 }}>
+          <div className="g-welcome-sub">
             {profile.goal ? `Let's keep pushing on ${profile.goal}. ` : 'Ready to graze on some knowledge? '}
             Your next mission is one tap away.
           </div>
@@ -87,7 +87,12 @@ export default function Dashboard() {
                 <button
                   className="g-btn small ghost"
                   onClick={(e) => { e.preventDefault(); quickComplete(m) }}
-                  style={{ position: 'absolute', top: 12, right: 12 }}
+                  style={{
+                    position: 'absolute', top: -10, right: -10,
+                    width: 32, height: 32, minHeight: 32, padding: 0,
+                    borderRadius: '50%', background: 'var(--card)',
+                    boxShadow: 'var(--shadow-1)',
+                  }}
                   title="Mark complete"
                 >✓</button>
               )}

@@ -53,14 +53,14 @@ export default function AppShell() {
           ))}
         </div>
         <div className="nav-spacer" />
-        <Link to="/app/notifications" className="g-badge" title="Notifications" style={{ padding: '8px 10px' }} aria-label="Notifications">
+        <Link to="/app/notifications" className="g-badge" title="Notifications" style={{ width: 42, height: 42, padding: 0, borderRadius: '50%', justifyContent: 'center', color: 'var(--muted)' }} aria-label="Notifications">
           <Icon name="bell" />
         </Link>
         <span className="g-xp-pill" title={`Level ${profile.level}`}>
           <span className="lv">{profile.level}</span>
           <span>{profile.xp} XP</span>
         </span>
-        <span className="g-badge" style={{ background: 'rgba(255, 138, 107, 0.14)', color: 'var(--coral-dark)' }}>
+        <span className="g-badge" style={{ background: 'rgba(218, 45, 43, 0.12)', color: 'var(--red)', border: 'none' }}>
           🔥 {profile.streak}
         </span>
       </nav>

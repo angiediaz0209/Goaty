@@ -30,8 +30,10 @@ function MuseRoute() {
 }
 
 export default function Router() {
+  // On GitHub Pages the app is served under /<repo>/; BASE_URL carries that.
+  const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/onboarding" element={<Onboarding />} />

@@ -250,7 +250,7 @@ button { font-family: inherit; }
   align-items: center;
   gap: var(--s-4);
   padding: 16px 24px;
-  background: rgba(255, 248, 236, 0.75);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -269,8 +269,12 @@ button { font-family: inherit; }
   font-size: 14px;
   color: var(--muted);
 }
-.g-nav a.nav-link.active,
-.g-nav a.nav-link:hover { color: var(--ink); background: var(--card); }
+.g-nav a.nav-link:hover { color: var(--blue); background: rgba(43, 121, 190, 0.08); }
+.g-nav a.nav-link.active {
+  color: var(--blue);
+  background: rgba(43, 121, 190, 0.12);
+  font-weight: 700;
+}
 .g-nav .nav-spacer { flex: 1; }
 
 .g-tabbar {
@@ -304,18 +308,19 @@ button { font-family: inherit; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px 6px 6px;
-  background: var(--card);
-  border: 1px solid var(--border);
+  padding: 6px 16px 6px 6px;
+  background: var(--orange);
+  border: 1px solid transparent;
   border-radius: var(--r-pill);
-  box-shadow: var(--shadow-1);
-  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(247, 147, 49, 0.30);
+  color: #FFFFFF;
+  font-weight: 800;
 }
 .g-xp-pill .lv {
   display: inline-flex;
   align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--coral), var(--sun));
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
   color: white; font-size: 12px;
 }
 
@@ -1625,6 +1630,329 @@ button { font-family: inherit; }
 .game-inner .primary { background: var(--blue); color: #fff; }
 .game-inner .choice, .game-inner .match-card, .game-inner .spot, .game-inner .order-step {
   color:black;
+}
+
+/* ============================================================
+ * Dashboard — blue welcome banner + mission icon tiles
+ * ============================================================ */
+.g-welcome {
+  background: var(--blue);
+  border: none;
+  box-shadow: 0 18px 40px rgba(43, 121, 190, 0.28);
+  color: #FFFFFF;
+}
+.g-welcome .g-welcome-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+}
+.g-welcome .g-welcome-sub {
+  color: rgba(255, 255, 255, 0.90);
+  margin-top: 6px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Soft rounded icon tile in front of each mission */
+.mission-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.mission-icon.lesson { background: rgba(43, 121, 190, 0.12); }
+.mission-icon.quiz   { background: rgba(218, 45, 43, 0.12); }
+.mission-icon.chat   { background: rgba(74, 179, 210, 0.14); }
+.mission-icon.default { background: rgba(247, 147, 49, 0.14); }
+
+/* Peachy XP reward pill on mission cards */
+.g-pill.reward {
+  background: rgba(247, 147, 49, 0.16);
+  color: var(--coral-dark);
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+/* ============================================================
+ * Chat v2 — narrow sidebar + large chat panel (matches reference)
+ * ============================================================ */
+.chat-v2 {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.chat-v2-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cv2-streak-pill {
+  align-self: flex-start;
+  background: var(--card);
+  border-radius: var(--r-pill);
+  padding: 8px 16px;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: var(--shadow-1);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.cv2-intro {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.cv2-intro .g-mascot { width: 72px; height: 72px; }
+.cv2-bubble {
+  background: var(--card);
+  border-radius: 16px 16px 16px 4px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-1);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Blue level card */
+.cv2-level {
+  background: var(--blue);
+  color: #FFFFFF;
+  border-radius: var(--r-lg);
+  padding: 18px;
+  box-shadow: 0 12px 26px rgba(43, 121, 190, 0.26);
+}
+.cv2-level-title { font-family: var(--font-display); font-weight: 800; font-size: 20px; }
+.cv2-level-track {
+  height: 10px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.30);
+  margin: 12px 0 8px;
+  overflow: hidden;
+}
+.cv2-level-track > span {
+  display: block; height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--orange);
+  transition: width .5s ease;
+}
+.cv2-level-xp { font-size: 13px; opacity: 0.92; }
+
+/* Streak card */
+.cv2-streak-card .cv2-card-title { font-weight: 800; font-size: 15px; }
+.cv2-checks { display: flex; gap: 10px; margin-top: 14px; }
+.cv2-check {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+}
+.cv2-check.done { background: var(--orange); color: #FFFFFF; }
+.cv2-check.next { background: rgba(43, 121, 190, 0.12); color: var(--blue); }
+
+/* Avatar card */
+.cv2-avatar { display: flex; align-items: center; gap: 12px; }
+.cv2-avatar-badge {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--cyan);
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+}
+
+/* Orange mission card */
+.cv2-mission {
+  background: var(--orange);
+  color: #FFFFFF;
+  border-radius: var(--r-lg);
+  padding: 18px;
+  box-shadow: 0 12px 26px rgba(247, 147, 49, 0.30);
+  text-decoration: none;
+  display: block;
+  transition: transform .15s ease;
+}
+.cv2-mission:hover { transform: translateY(-2px); }
+.cv2-mission-label { font-weight: 800; font-size: 13px; }
+.cv2-mission-title { font-family: var(--font-display); font-weight: 800; font-size: 18px; margin-top: 6px; }
+
+/* Quote card */
+.cv2-quote {
+  background: rgba(43, 121, 190, 0.08);
+  border: 1px solid rgba(43, 121, 190, 0.14);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  color: var(--blue);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* Learning focus card */
+.cv2-focus { color: var(--ink); }
+.cv2-focus-label { font-weight: 800; font-size: 13px; }
+.cv2-focus-title { font-family: var(--font-display); font-weight: 800; margin-top: 6px; }
+
+/* ---- Large chat panel ---- */
+.chat-v2-main {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 132px);
+  position: sticky;
+  top: 100px;
+  overflow: hidden;
+}
+.cv2-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.cv2-chat-head-badge {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--cyan);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.cv2-chat-head-badge img { width: 34px; height: 34px; object-fit: contain; }
+.cv2-chat-head-name { font-family: var(--font-display); font-weight: 800; font-size: 17px; }
+.cv2-chat-head-sub { font-size: 13px; color: var(--muted); }
+
+.cv2-chat-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cv2-msg { display: flex; }
+.cv2-msg.user { justify-content: flex-end; }
+.cv2-msg.goaty { justify-content: flex-start; }
+.cv2-msg-bubble {
+  border-radius: 18px;
+  padding: 16px 22px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  max-width: 82%;
+}
+.cv2-msg-bubble.goaty { background: #EAF3FB; color: var(--text); }
+.cv2-msg-bubble.user { background: var(--message-blue); color: #FFFFFF; }
+body[data-theme="dark"] .cv2-msg-bubble.goaty { background: rgba(74, 179, 210, 0.12); }
+.cv2-msg-time { font-size: 11px; color: var(--muted); text-align: right; margin-top: 8px; }
+.cv2-msg-bubble.user .cv2-msg-time { color: rgba(255, 255, 255, 0.7); }
+
+.cv2-rich-p { margin: 0 0 10px; }
+.cv2-rich-p:last-child { margin-bottom: 0; }
+.cv2-rich-img { max-width: 100%; border-radius: 12px; margin: 6px 0; }
+
+/* In-chat chart */
+.cv2-chart {
+  margin: 12px 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.cv2-chart-title {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.cv2-chat-foot {
+  padding: 16px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-top: 1px solid var(--border);
+}
+.cv2-input-row { display: flex; gap: 12px; align-items: center; }
+.cv2-input {
+  flex: 1;
+  padding: 16px 22px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: #F7FAFD;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: border-color .15s ease;
+}
+.cv2-input:focus { border-color: var(--blue); }
+body[data-theme="dark"] .cv2-input { background: rgba(255, 255, 255, 0.04); }
+.cv2-send {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #FFFFFF;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(43, 121, 190, 0.30);
+  transition: transform .15s ease;
+}
+.cv2-send:hover { transform: translateY(-1px); }
+.cv2-send:active { transform: translateY(1px); }
+
+.cv2-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cv2-chip {
+  border: none;
+  border-radius: 14px;
+  padding: 15px 18px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  color: #3A2E22;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform .15s ease, filter .15s ease;
+}
+.cv2-chip:hover { transform: translateY(-1px); filter: brightness(0.97); }
+.cv2-chip.peach { background: #FCE8CF; }
+.cv2-chip.blue  { background: #DDEFF7; color: #1F3A4D; }
+.cv2-chip.pink  { background: #F8DCDC; color: #4D2323; }
+
+@media (max-width: 960px) {
+  .chat-v2 { grid-template-columns: 1fr; }
+  .chat-v2-main { height: 70vh; position: static; }
 }
 
 

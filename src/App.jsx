@@ -88,7 +88,7 @@ export default function App() {
   const [gameLoading, setGameLoading] = useState(false)
   // This app is mounted by the outer router at /muse/*, so internal nav is
   // relative to that base. view: '/' (home), '/games', '/roadmap', '/profile'.
-  const BASE = '/muse'
+  const BASE = import.meta.env.BASE_URL.replace(/\/+$/, '') + '/muse'
   const [path, setPath] = useState(window.location.pathname)
   const view = path.startsWith(BASE) ? (path.slice(BASE.length) || '/') : path
 
@@ -346,13 +346,25 @@ export default function App() {
                   </div>
 
                   <div className="chat">
-                    <div className="chat-head">💬 Confused about anything? Ask Goaty — it'll answer in your {lesson.lensUsed} world.</div>
-                    {chatMsgs.length > 0 && (
+                    <div className="chat-head">Stuck on anything? Ask Goaty and it'll answer in your {lesson.lensUsed} world.</div>
+                    {(chatMsgs.length > 0 || chatLoading) && (
                       <div className="chat-thread">
-                        {chatMsgs.map((m, i) => (
-                          <div key={i} className={'bubble ' + m.role}>{m.content}</div>
-                        ))}
-                        {chatLoading && <div className="bubble assistant typing">Goaty is thinking…</div>}
+                        {chatMsgs.map((m, i) =>
+                          m.role === 'assistant' ? (
+                            <div key={i} className="bubble assistant">
+                              <span className="bubble-who"><span className="bubble-avatar">🐐</span>Goaty</span>
+                              <div className="bubble-text">{m.content}</div>
+                            </div>
+                          ) : (
+                            <div key={i} className="bubble user">{m.content}</div>
+                          )
+                        )}
+                        {chatLoading && (
+                          <div className="bubble assistant">
+                            <span className="bubble-who"><span className="bubble-avatar">🐐</span>Goaty</span>
+                            <div className="bubble-text typing"><span className="dot"></span><span className="dot"></span><span className="dot"></span></div>
+                          </div>
+                        )}
                         <div ref={chatEndRef} />
                       </div>
                     )}

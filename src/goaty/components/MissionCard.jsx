@@ -23,8 +23,10 @@ export default function MissionCard({ mission, onClick }) {
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span style={{ fontSize: 32 }}>{ICONS[mission.kind] || '⭐'}</span>
-        <span className="g-pill">+{mission.xp} XP</span>
+        <span className={`mission-icon ${ICONS[mission.kind] ? mission.kind : 'default'}`} aria-hidden>
+          {ICONS[mission.kind] || '⭐'}
+        </span>
+        <span className="g-pill reward">+{mission.xp} XP</span>
       </div>
       <div style={{ fontWeight: 700, fontSize: 17 }}>{mission.title}</div>
       <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
