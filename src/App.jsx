@@ -86,20 +86,23 @@ export default function App() {
   const chatEndRef = useRef(null)
   const [game, setGame] = useState(null) // { type, spec, lens }
   const [gameLoading, setGameLoading] = useState(false)
-  const [path, setPath] = useState(window.location.pathname) // New state for path
-  console.log('Current path:', path) // Debugging path
+  // This app is mounted by the outer router at /muse/*, so internal nav is
+  // relative to that base. view: '/' (home), '/games', '/roadmap', '/profile'.
+  const BASE = '/muse'
+  const [path, setPath] = useState(window.location.pathname)
+  const view = path.startsWith(BASE) ? (path.slice(BASE.length) || '/') : path
 
-  // Listen for path changes
   useEffect(() => {
-    const handlePopState = () => setPath(window.location.pathname);
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+    const handlePopState = () => setPath(window.location.pathname)
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   const navigate = (newPath) => {
-    window.history.pushState(null, '', newPath);
-    setPath(newPath);
-  };
+    const full = BASE + (newPath === '/' ? '' : newPath)
+    window.history.pushState(null, '', full)
+    setPath(full)
+  }
 
   async function launchGame(gameType, gameTopic, gameLens) {
     if (!gameTopic.trim() || !gameLens.trim()) return
@@ -262,16 +265,16 @@ export default function App() {
         <h1>Goaty <span className="goat">🐐</span></h1>
         <p className="tagline">Your GOAT study buddy — learn anything through the things you already love.</p>
         <nav>
-          <a href="#" onClick={() => navigate('/')} className={path === '/' ? 'active' : ''}>Chat</a>
-          <a href="#" onClick={() => navigate('/games')} className={path === '/games' ? 'active' : ''}>Games</a>
-          <a href="#" onClick={() => navigate('/roadmap')} className={path === '/roadmap' ? 'active' : ''}>Roadmap</a>
-          <a href="#" onClick={() => navigate('/profile')} className={path === '/profile' ? 'active' : ''}>Profile</a>
+          <a href="#" onClick={() => navigate('/')} className={view === '/' ? 'active' : ''}>Chat</a>
+          <a href="#" onClick={() => navigate('/games')} className={view === '/games' ? 'active' : ''}>Games</a>
+          <a href="#" onClick={() => navigate('/roadmap')} className={view === '/roadmap' ? 'active' : ''}>Roadmap</a>
+          <a href="#" onClick={() => navigate('/profile')} className={view === '/profile' ? 'active' : ''}>Profile</a>
         </nav>
       </header>
 
       <div className="layout">
         <main>
-          {path === '/' && (
+          {view === '/' && (
             <>
               <section className="card setup">
                 <label className="field-label">What do you want to understand?</label>
@@ -383,7 +386,7 @@ export default function App() {
             </>
           )}
 
-          {path === '/games' && (
+          {view === '/games' && (
             <GameSelectionPage launchGame={launchGame} gameLoading={gameLoading} profile={profile} />
           )}
         </main>
