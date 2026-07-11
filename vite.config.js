@@ -225,6 +225,9 @@ function tutorApi() {
         }
         res.setHeader('content-type', 'application/json')
         try {
+          if (!process.env.ANTHROPIC_API_KEY) {
+            throw new Error('ANTHROPIC_API_KEY is not set. Add it to .env and restart the dev server.')
+          }
           if (!client) client = new Anthropic() // reads ANTHROPIC_API_KEY
           const body = await readJson(req)
           const result = await handle(client, body)
@@ -421,5 +424,6 @@ function goatyApi() {
 }
 
 export default defineConfig({
+  base: './',
   plugins: [react(), tutorApi(), goatyApi()],
 })
