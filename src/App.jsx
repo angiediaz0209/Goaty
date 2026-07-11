@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import Game from './Games.jsx'
+import GameSelectionPage from './GameSelectionPage.jsx'
 
-const GAME_TYPES = [
+export const GAME_TYPES = [
   { id: 'quiz_battle', label: '⚔️ Quiz Battle' },
   { id: 'match_pairs', label: '🃏 Match Pairs' },
   { id: 'spot_mistake', label: '🔍 Spot the Mistake' },
@@ -85,20 +86,32 @@ export default function App() {
   const chatEndRef = useRef(null)
   const [game, setGame] = useState(null) // { type, spec, lens }
   const [gameLoading, setGameLoading] = useState(false)
+  const [path, setPath] = useState(window.location.pathname) // New state for path
 
-  async function launchGame(gameType) {
-    if (!topic.trim() || profile.passions.length === 0) return
-    const lens = lesson?.lensUsed || pickStartLens()
+  // Listen for path changes
+  useEffect(() => {
+    const handlePopState = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigate = (newPath) => {
+    window.history.pushState(null, '', newPath);
+    setPath(newPath);
+  };
+
+  async function launchGame(gameType, gameTopic, gameLens) {
+    if (!gameTopic.trim() || !gameLens.trim()) return
     setGameLoading(true); setError('')
     try {
-      const spec = await askMuse({
+      const spec = await askGoaty({
         action: 'game',
         gameType,
-        topic: topic.trim(),
-        lens,
+        topic: gameTopic.trim(),
+        lens: gameLens,
         learnerStyle: profile.learnerStyle,
       })
-      setGame({ type: gameType, spec, lens })
+      setGame({ type: gameType, spec, lens: gameLens })
     } catch (e) {
       setError(e.message)
     } finally {
@@ -247,116 +260,130 @@ export default function App() {
       <header>
         <h1>Goaty <span className="goat">🐐</span></h1>
         <p className="tagline">Your GOAT study buddy — learn anything through the things you already love.</p>
+        <nav>
+          <a href="#" onClick={() => navigate('/')} className={path === '/' ? 'active' : ''}>Chat</a>
+          <a href="#" onClick={() => navigate('/games')} className={path === '/games' ? 'active' : ''}>Games</a>
+          <a href="#" onClick={() => navigate('/roadmap')} className={path === '/roadmap' ? 'active' : ''}>Roadmap</a>
+          <a href="#" onClick={() => navigate('/profile')} className={path === '/profile' ? 'active' : ''}>Profile</a>
+        </nav>
       </header>
 
       <div className="layout">
         <main>
-          <section className="card setup">
-            <label className="field-label">What do you want to understand?</label>
-            <div className="topic-row">
-              <input
-                className="topic-input"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && startLesson()}
-                placeholder="e.g. recursion, compound interest, the French Revolution"
-              />
-              <button className="primary" onClick={startLesson} disabled={loading || !topic.trim()}>
-                {loading && !lesson ? 'Thinking…' : 'Teach me'}
-              </button>
-            </div>
-
-            <label className="field-label">Your worlds</label>
-            <div className="chips">
-              {DEFAULT_PASSIONS.map((p) => (
-                <button
-                  key={p}
-                  className={'chip' + (profile.passions.includes(p) ? ' active' : '')}
-                  onClick={() => togglePassion(p)}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-
-            <div className="examples">
-              <span className="examples-label">Or try an example:</span>
-              {EXAMPLES.map((ex) => (
-                <button key={ex.label} className="example-chip" onClick={() => runExample(ex)} disabled={loading}>
-                  {ex.label}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {error && <div className="card error">⚠️ {error}</div>}
-
-          {lesson && (
-            <section className="card lesson">
-              <div className="lens-badge">Explained through your love of <b>{lesson.lensUsed}</b></div>
-              <Explanation text={lesson.explanation} />
-
-              <div className="check">
-                <div className="check-q">🤔 {lesson.checkQuestion}</div>
-                {feedback && (
-                  <div className={'feedback ' + (feedback.correct ? 'good' : 'bad')}>
-                    {feedback.correct ? '✅ ' : '↻ '}{feedback.feedback}
-                    {!feedback.correct && <div className="switching">Let me try one of your other worlds…</div>}
-                  </div>
-                )}
-                <div className="answer-row">
+          {path === '/' && (
+            <>
+              <section className="card setup">
+                <label className="field-label">What do you want to understand?</label>
+                <div className="topic-row">
                   <input
-                    ref={answerRef}
-                    className="answer-input"
-                    value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && submitAnswer()}
-                    placeholder="Your answer, in the same world…"
-                    disabled={loading}
+                    className="topic-input"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && startLesson()}
+                    placeholder="e.g. recursion, compound interest, the French Revolution"
                   />
-                  <button className="primary" onClick={submitAnswer} disabled={loading || !answer.trim()}>
-                    {loading ? '…' : 'Check'}
+                  <button className="primary" onClick={startLesson} disabled={loading || !topic.trim()}>
+                    {loading && !lesson ? 'Thinking…' : 'Teach me'}
                   </button>
                 </div>
-              </div>
 
-              <div className="chat">
-                <div className="chat-head">💬 Confused about anything? Ask Goaty — it'll answer in your {lesson.lensUsed} world.</div>
-                {chatMsgs.length > 0 && (
-                  <div className="chat-thread">
-                    {chatMsgs.map((m, i) => (
-                      <div key={i} className={'bubble ' + m.role}>{m.content}</div>
-                    ))}
-                    {chatLoading && <div className="bubble assistant typing">Goaty is thinking…</div>}
-                    <div ref={chatEndRef} />
-                  </div>
-                )}
-                <div className="answer-row">
-                  <input
-                    className="answer-input"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && sendChat()}
-                    placeholder={'e.g. "wait, I don\'t get the base case"'}
-                    disabled={chatLoading}
-                  />
-                  <button className="primary" onClick={sendChat} disabled={chatLoading || !chatInput.trim()}>
-                    {chatLoading ? '…' : 'Ask'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="games">
-                <div className="games-head">🎮 Test yourself — games themed to your <b>{lesson.lensUsed}</b> world</div>
-                <div className="game-buttons">
-                  {GAME_TYPES.map((g) => (
-                    <button key={g.id} className="game-launch" onClick={() => launchGame(g.id)} disabled={gameLoading}>
-                      {g.label}
+                <label className="field-label">Your worlds</label>
+                <div className="chips">
+                  {DEFAULT_PASSIONS.map((p) => (
+                    <button
+                      key={p}
+                      className={'chip' + (profile.passions.includes(p) ? ' active' : '')}
+                      onClick={() => togglePassion(p)}
+                    >
+                      {p}
                     </button>
                   ))}
                 </div>
-              </div>
-            </section>
+
+                <div className="examples">
+                  <span className="examples-label">Or try an example:</span>
+                  {EXAMPLES.map((ex) => (
+                    <button key={ex.label} className="example-chip" onClick={() => runExample(ex)} disabled={loading}>
+                      {ex.label}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {error && <div className="card error">⚠️ {error}</div>}
+
+              {lesson && (
+                <section className="card lesson">
+                  <div className="lens-badge">Explained through your love of <b>{lesson.lensUsed}</b></div>
+                  <Explanation text={lesson.explanation} />
+
+                  <div className="check">
+                    <div className="check-q">🤔 {lesson.checkQuestion}</div>
+                    {feedback && (
+                      <div className={'feedback ' + (feedback.correct ? 'good' : 'bad')}>
+                        {feedback.correct ? '✅ ' : '↻ '}{feedback.feedback}
+                        {!feedback.correct && <div className="switching">Let me try one of your other worlds…</div>}
+                      </div>
+                    )}
+                    <div className="answer-row">
+                      <input
+                        ref={answerRef}
+                        className="answer-input"
+                        value={answer}
+                        onChange={(e) => setAnswer(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && submitAnswer()}
+                        placeholder="Your answer, in the same world…"
+                        disabled={loading}
+                      />
+                      <button className="primary" onClick={submitAnswer} disabled={loading || !answer.trim()}>
+                        {loading ? '…' : 'Check'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="chat">
+                    <div className="chat-head">💬 Confused about anything? Ask Goaty — it'll answer in your {lesson.lensUsed} world.</div>
+                    {chatMsgs.length > 0 && (
+                      <div className="chat-thread">
+                        {chatMsgs.map((m, i) => (
+                          <div key={i} className={'bubble ' + m.role}>{m.content}</div>
+                        ))}
+                        {chatLoading && <div className="bubble assistant typing">Goaty is thinking…</div>}
+                        <div ref={chatEndRef} />
+                      </div>
+                    )}
+                    <div className="answer-row">
+                      <input
+                        className="answer-input"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && sendChat()}
+                        placeholder={'e.g. "wait, I don\'t get the base case"'}
+                        disabled={chatLoading}
+                      />
+                      <button className="primary" onClick={sendChat} disabled={chatLoading || !chatInput.trim()}>
+                        {chatLoading ? '…' : 'Ask'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="games">
+                    <div className="games-head">🎮 Test yourself — games themed to your <b>{lesson.lensUsed}</b> world</div>
+                    <div className="game-buttons">
+                      {GAME_TYPES.map((g) => (
+                        <button key={g.id} className="game-launch" onClick={() => launchGame(g.id, topic, lesson.lensUsed)} disabled={gameLoading}>
+                          {g.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </>
+          )}
+
+          {path === '/games' && (
+            <GameSelectionPage launchGame={launchGame} gameLoading={gameLoading} profile={profile} />
           )}
         </main>
 
