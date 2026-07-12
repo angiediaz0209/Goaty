@@ -88,6 +88,7 @@ body {
     var(--background);
   background-attachment: fixed;
   position: relative;
+  overflow-x: clip;
 }
 
 .goaty-app::before {
@@ -752,10 +753,25 @@ button { font-family: inherit; }
   .g-grid-2, .g-grid-3, .g-grid-4 { grid-template-columns: 1fr; }
   .g-page-pad { padding-bottom: 120px; }
   .g-ask-fab { bottom: 88px; }
+
+  /* Compact top bar on mobile */
+  .g-nav { padding: 10px 14px; gap: var(--s-2); }
+  .brand-logo { height: 48px; }
+  .g-xp-pill { padding: 5px 12px 5px 5px; font-size: 13px; }
+  .g-xp-pill .lv { width: 22px; height: 22px; }
+  .g-nav .g-badge { padding: 6px 10px; font-size: 12px; }
 }
 
 @media (max-width: 640px) {
   .g-container, .g-container-narrow { padding: var(--s-4); }
+  .brand-logo { height: 42px; }
+  .g-nav { gap: 6px; }
+
+  /* Dashboard greeting card stacks on phones */
+  .g-welcome { grid-template-columns: 1fr !important; text-align: center; gap: 12px !important; }
+  .g-welcome > :first-child { justify-self: center; }
+  .g-welcome .g-btn.primary { justify-self: center; }
+  .g-welcome-title { font-size: 26px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1683,15 +1699,82 @@ button { font-family: inherit; }
  * ============================================================ */
 .chat-v2 {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 320px 1fr 260px;
   gap: 20px;
   align-items: start;
+}
+
+/* Borderless, softly-rounded cards to match the reference */
+.chat-v2 .g-card,
+.chat-v2 .cv2-level,
+.chat-v2 .cv2-mission,
+.chat-v2 .cv2-quote,
+.chat-v2 .cv2-bubble,
+.chat-v2 .chat-v2-main {
+  border: none;
+  border-radius: 22px;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+}
+.chat-v2 .chat-v2-main { border-radius: 26px; }
+.chat-v2 .cv2-quote { border-radius: 22px; }
+
+/* Right rail: quick "Teach me with…" prompts */
+.chat-v2-right {
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.cv2-prompts-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-left: 2px;
 }
 
 .chat-v2-side {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+}
+
+/* Big Goaty sits at the top of the left column, above its cards */
+.cv2-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+}
+.cv2-hero .g-mascot {
+  width: 100%;
+  max-width: 178px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+.cv2-hero .cv2-bubble {
+  position: relative;
+  align-self: center;
+  max-width: 230px;
+  text-align: center;
+  border-radius: 16px;
+  margin-bottom: 10px;
+}
+/* Tail pointing down toward Goaty's head */
+.cv2-hero .cv2-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 14px;
+  height: 14px;
+  background: var(--card);
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: var(--shadow-1);
 }
 
 .cv2-streak-pill {
@@ -1709,11 +1792,11 @@ button { font-family: inherit; }
 
 .cv2-intro {
   display: grid;
-  grid-template-columns: 72px 1fr;
+  grid-template-columns: 96px 1fr;
   gap: 10px;
   align-items: center;
 }
-.cv2-intro .g-mascot { width: 72px; height: 72px; }
+.cv2-intro .g-mascot { width: 96px; height: 96px; }
 .cv2-bubble {
   background: var(--card);
   border-radius: 16px 16px 16px 4px;
@@ -1763,7 +1846,7 @@ button { font-family: inherit; }
 .cv2-check.next { background: rgba(43, 121, 190, 0.12); color: var(--blue); }
 
 /* Avatar card */
-.cv2-avatar { display: flex; align-items: center; gap: 12px; }
+.cv2-avatar { display: flex; align-items: center; gap: 12px; min-height: 104px; }
 .cv2-avatar-badge {
   width: 44px; height: 44px;
   border-radius: 50%;
@@ -1807,11 +1890,25 @@ button { font-family: inherit; }
 }
 
 /* Learning focus card */
-.cv2-focus { color: var(--ink); }
+.cv2-focus {
+  color: var(--ink);
+  min-height: 104px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 .cv2-focus-label { font-weight: 800; font-size: 13px; }
 .cv2-focus-title { font-family: var(--font-display); font-weight: 800; margin-top: 6px; }
 
-/* ---- Large chat panel ---- */
+/* ---- Right column: chat panel + cards underneath ---- */
+.chat-v2-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
 .chat-v2-main {
   background: var(--card);
   border: 1px solid var(--border);
@@ -1819,17 +1916,71 @@ button { font-family: inherit; }
   box-shadow: var(--shadow-1);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 132px);
-  position: sticky;
-  top: 100px;
+  height: clamp(440px, calc(100vh - 300px), 720px);
   overflow: hidden;
 }
+
+/* Row of cards under the chat */
+.cv2-under {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  flex-shrink: 0;
+  align-items: stretch;
+}
+.cv2-under > * {
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* "On this topic" action buttons in the right rail */
+.cv2-topic-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  border-radius: var(--r-lg);
+  padding: 26px 18px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: #FFFFFF;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .15s ease, filter .15s ease;
+}
+.cv2-topic-btn:hover { transform: translateY(-1px); filter: brightness(1.02); }
+.cv2-topic-btn:active { transform: translateY(1px); }
+.cv2-topic-btn.blue { background: var(--blue); box-shadow: 0 10px 22px rgba(43, 121, 190, 0.28); }
+.cv2-topic-btn.orange { background: var(--orange); box-shadow: 0 10px 22px rgba(247, 147, 49, 0.28); }
+.cv2-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  border: none;
+  background: rgba(31, 41, 55, 0.05);
+  color: var(--muted);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color .15s ease, background .15s ease;
+}
+.cv2-clear-btn:hover {
+  color: var(--red);
+  background: rgba(218, 45, 43, 0.08);
+}
+
 .cv2-chat-head {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 18px 24px;
-  border-bottom: 1px solid var(--border);
 }
 .cv2-chat-head-badge {
   width: 46px; height: 46px;
@@ -1874,42 +2025,60 @@ body[data-theme="dark"] .cv2-msg-bubble.goaty { background: rgba(74, 179, 210, 0
 .cv2-rich-p:last-child { margin-bottom: 0; }
 .cv2-rich-img { max-width: 100%; border-radius: 12px; margin: 6px 0; }
 
-/* In-chat chart */
-.cv2-chart {
-  margin: 12px 0;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 16px;
+/* When a reply includes a chart, drop the outer bubble and show each part
+   (chart, answer text) as its own light-blue rounded block — like the image. */
+.cv2-msg-bubble.goaty:has(.cv2-rich.has-chart) {
+  background: transparent;
+  padding: 0;
+  max-width: 100%;
+  width: 100%;
 }
-.cv2-chart-title {
-  font-weight: 800;
-  font-size: 14px;
+.cv2-msg-bubble.goaty:has(.cv2-rich.has-chart) .cv2-msg-time { display: none; }
+.cv2-rich.has-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cv2-rich.has-chart .cv2-answer {
+  background: #EAF3FB;
+  border-radius: 22px;
+  padding: 18px 24px;
+  font-size: 15.5px;
+  line-height: 1.6;
   color: var(--text);
-  margin-bottom: 8px;
 }
+body[data-theme="dark"] .cv2-rich.has-chart .cv2-answer { background: rgba(74, 179, 210, 0.12); }
+
+/* In-chat chart — light-blue block, clean axes, no title */
+.cv2-chart {
+  margin: 0;
+  background: #EAF3FB;
+  border: none;
+  border-radius: 22px;
+  padding: 26px 24px 18px;
+}
+body[data-theme="dark"] .cv2-chart { background: rgba(74, 179, 210, 0.12); }
 
 .cv2-chat-foot {
   padding: 16px 24px 22px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  border-top: 1px solid var(--border);
 }
 .cv2-input-row { display: flex; gap: 12px; align-items: center; }
 .cv2-input {
   flex: 1;
   padding: 16px 22px;
   border-radius: var(--r-lg);
-  border: 1px solid var(--border);
+  border: none;
   background: #F7FAFD;
   color: var(--ink);
   font-family: inherit;
   font-size: 15px;
   outline: none;
-  transition: border-color .15s ease;
+  transition: box-shadow .15s ease;
 }
-.cv2-input:focus { border-color: var(--blue); }
+.cv2-input:focus { box-shadow: 0 0 0 2px rgba(43, 121, 190, 0.35); }
 body[data-theme="dark"] .cv2-input { background: rgba(255, 255, 255, 0.04); }
 .cv2-send {
   width: 52px; height: 52px;
@@ -1929,18 +2098,19 @@ body[data-theme="dark"] .cv2-input { background: rgba(255, 255, 255, 0.04); }
 .cv2-send:hover { transform: translateY(-1px); }
 .cv2-send:active { transform: translateY(1px); }
 
-.cv2-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cv2-chips { display: flex; flex-direction: column; gap: 12px; }
 .cv2-chip {
+  width: 100%;
   border: none;
   border-radius: 14px;
-  padding: 15px 18px;
+  padding: 21px 16px;
   font-family: inherit;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 600;
   text-align: left;
   cursor: pointer;
   color: #3A2E22;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
   transition: transform .15s ease, filter .15s ease;
@@ -1952,7 +2122,30 @@ body[data-theme="dark"] .cv2-input { background: rgba(255, 255, 255, 0.04); }
 
 @media (max-width: 960px) {
   .chat-v2 { grid-template-columns: 1fr; }
-  .chat-v2-main { height: 70vh; position: static; }
+  .cv2-hero .g-mascot { max-width: 200px; }
+  .chat-v2-main { height: 70vh; }
+  .cv2-under { grid-template-columns: 1fr 1fr; }
+  /* The right rail shouldn't stick once stacked */
+  .chat-v2-right { position: static; }
+}
+
+@media (max-width: 640px) {
+  .chat-v2 { gap: 16px; }
+  .cv2-hero .g-mascot { max-width: 150px; }
+  .cv2-hero .cv2-bubble { max-width: 260px; }
+  .chat-v2-main { height: 64vh; min-height: 380px; }
+  .cv2-under { grid-template-columns: 1fr; }
+
+  /* Chat panel breathing room + fit the header on narrow screens */
+  .cv2-chat-head { padding: 14px 16px; gap: 8px; }
+  .cv2-chat-head-badge { width: 40px; height: 40px; }
+  .cv2-chat-scroll { padding: 16px; gap: 12px; }
+  .cv2-chat-foot { padding: 12px 16px 16px; }
+  .cv2-msg-bubble { max-width: 90%; font-size: 15px; padding: 14px 18px; }
+  .cv2-input { padding: 14px 18px; }
+  .cv2-send { width: 46px; height: 46px; }
+  .cv2-clear-btn { padding: 7px 10px; font-size: 12px; }
+  .chat-icon-btn { width: 34px; height: 34px; }
 }
 
 

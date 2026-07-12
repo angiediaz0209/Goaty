@@ -44,7 +44,7 @@ const INTEREST_FLAVOR = {
 }
 
 export default function ChatPage() {
-  const { state, sendChat } = useGoatyStore()
+  const { state, sendChat, clearChat } = useGoatyStore()
   const [text, setText] = useState('')
   const scroller = useRef(null)
 
@@ -99,19 +99,15 @@ export default function ChatPage() {
 
   return (
     <div className="chat-v2">
-      {/* ================= LEFT SIDEBAR ================= */}
+      {/* ================= LEFT: big Goaty + its cards ================= */}
       <aside className="chat-v2-side">
-        <div className="cv2-streak-pill">
-          <span style={{ color: 'var(--streak)' }}>🔥</span> {streakDays}-day streak! 🎉
-        </div>
-
-        {/* Mascot + welcome bubble */}
-        <div className="cv2-intro">
-          <Mascot size="sm" animate={isThinking ? 'thinking' : 'none'} speed={280} />
+        {/* Speech bubble above Goaty's head, then the big mascot */}
+        <div className="cv2-hero">
           <div className="cv2-bubble">
             <div>Hi there! 🌱 I'm <strong style={{ color: 'var(--blue)' }}>Goaty</strong></div>
             <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>Your learning companion 🌿</div>
           </div>
+          <Mascot size="hero" animate={isThinking ? 'thinking' : 'none'} speed={280} />
         </div>
 
         {/* Level card */}
@@ -141,24 +137,10 @@ export default function ChatPage() {
           </div>
           <div style={{ marginLeft: 'auto', color: 'var(--muted)' }}>▾</div>
         </div>
-
-        {/* Today's mission (orange) */}
-        <Link to={activeMission?.target || '/app/missions'} className="cv2-mission">
-          <div className="cv2-mission-label">🎯 Today's Mission</div>
-          <div className="cv2-mission-title">{activeMission?.title || 'Complete a mini-lesson'}</div>
-        </Link>
-
-        {/* Motivational quote */}
-        <div className="cv2-quote">"Small steps today, big wins tomorrow."</div>
-
-        {/* Learning focus */}
-        <Link to="/app/roadmap" className="g-card cv2-focus" style={{ textDecoration: 'none' }}>
-          <div className="cv2-focus-label">📗 Learning Focus</div>
-          <div className="cv2-focus-title">{activeNode?.title || 'Functions as Special Moves'}</div>
-        </Link>
       </aside>
 
-      {/* ================= MAIN CHAT ================= */}
+      {/* ================= MAIN COLUMN: chat + cards under it ================= */}
+      <div className="chat-v2-content">
       <section className="chat-v2-main">
         <header className="cv2-chat-head">
           <span className="cv2-chat-head-badge"><img src={goatyImg} alt="Goaty" /></span>
@@ -166,7 +148,15 @@ export default function ChatPage() {
             <div className="cv2-chat-head-name">Goaty</div>
             <div className="cv2-chat-head-sub">Your learning companion</div>
           </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              type="button"
+              className="cv2-clear-btn"
+              onClick={clearChat}
+              aria-label="Clear chat"
+            >
+              🧹 Clear
+            </button>
             <Link to="/app/notifications" className="chat-icon-btn" aria-label="Notifications">🔔</Link>
             <Link to="/app/settings" className="chat-icon-btn" aria-label="Settings">⚙️</Link>
           </div>
@@ -204,20 +194,51 @@ export default function ChatPage() {
             />
             <button className="cv2-send" aria-label="Send">➤</button>
           </form>
-
-          <div className="cv2-chips">
-            {quickPrompts.map((q, i) => (
-              <button
-                key={q.label}
-                className={`cv2-chip ${CHIP_TONES[i % CHIP_TONES.length]}`}
-                onClick={() => usePrompt(q.prompt)}
-              >
-                <span>{q.icon}</span> {q.label}
-              </button>
-            ))}
-          </div>
         </footer>
       </section>
+
+      {/* ---- Cards under the chat ---- */}
+      <div className="cv2-under">
+        <Link to={activeMission?.target || '/app/missions'} className="cv2-mission">
+          <div className="cv2-mission-label">🎯 Today's Mission</div>
+          <div className="cv2-mission-title">{activeMission?.title || 'Complete a mini-lesson'}</div>
+        </Link>
+
+        <div className="cv2-quote">"Small steps today, big wins tomorrow."</div>
+      </div>
+      </div>
+
+      {/* ================= RIGHT: quick "Teach me with…" prompts ================= */}
+      <aside className="chat-v2-right">
+        <div className="cv2-prompts-title">Teach me with…</div>
+        <div className="cv2-chips">
+          {quickPrompts.map((q, i) => (
+            <button
+              key={q.label}
+              className={`cv2-chip ${CHIP_TONES[i % CHIP_TONES.length]}`}
+              onClick={() => usePrompt(q.prompt)}
+            >
+              <span>{q.icon}</span> {q.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="cv2-prompts-title">On this topic</div>
+        <button
+          className="cv2-topic-btn blue"
+          onClick={() => usePrompt(`Quiz me on ${activeNode?.title || 'what I\'m learning'}.`)}
+        >
+          📝 Create a Quiz
+        </button>
+        <Link to="/app/games" className="cv2-topic-btn orange">
+          🎮 Play a Game
+        </Link>
+
+        <Link to="/app/roadmap" className="g-card cv2-focus" style={{ textDecoration: 'none' }}>
+          <div className="cv2-focus-label">📗 Learning Focus</div>
+          <div className="cv2-focus-title">{activeNode?.title || 'Functions as Special Moves'}</div>
+        </Link>
+      </aside>
     </div>
   )
 }

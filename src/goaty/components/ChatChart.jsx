@@ -16,13 +16,14 @@ export default function ChatChart({ spec }) {
   if (data.length === 0) return null
 
   const W = 460
-  const H = 240
-  const padL = 42
-  const padR = 16
-  const padT = 16
-  const padB = 40
+  const H = 230
+  const padL = 26
+  const padR = 20
+  const padT = 22
+  const padB = 34
   const plotW = W - padL - padR
   const plotH = H - padT - padB
+  const axisY = padT + plotH
 
   const maxV = Math.max(...data.map(d => d.value), 0)
   const minV = Math.min(...data.map(d => d.value), 0)
@@ -30,23 +31,24 @@ export default function ChatChart({ spec }) {
   const y = v => padT + plotH - ((v - minV) / span) * plotH
   const n = data.length
 
-  // gridlines
-  const ticks = 4
-  const gridVals = Array.from({ length: ticks + 1 }, (_, i) => minV + (span * i) / ticks)
+  // Faint horizontal gridlines behind the plot (no numeric labels)
+  const gridRows = 3
+  const gridYs = Array.from({ length: gridRows }, (_, i) => padT + (plotH * (i + 1)) / (gridRows + 1))
+
+  const AXIS = 'rgba(31, 41, 55, 0.18)'
+  const GRID = 'rgba(31, 41, 55, 0.07)'
 
   return (
     <figure className="cv2-chart">
-      {spec.title && <figcaption className="cv2-chart-title">{spec.title}</figcaption>}
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={spec.title || 'chart'} style={{ width: '100%', height: 'auto' }}>
-        {/* gridlines + y labels */}
-        {gridVals.map((gv, i) => (
-          <g key={i}>
-            <line x1={padL} x2={W - padR} y1={y(gv)} y2={y(gv)} stroke="var(--border-strong)" strokeWidth="1" opacity="0.35" />
-            <text x={padL - 8} y={y(gv) + 4} textAnchor="end" fontSize="11" fill="var(--muted)">
-              {Math.round(gv)}
-            </text>
-          </g>
+        {/* faint horizontal gridlines */}
+        {gridYs.map((gy, i) => (
+          <line key={i} x1={padL} x2={W - padR} y1={gy} y2={gy} stroke={GRID} strokeWidth="1" />
         ))}
+
+        {/* L-shaped axis "back lines" */}
+        <line x1={padL} x2={padL} y1={padT} y2={axisY} stroke={AXIS} strokeWidth="1.5" strokeLinecap="round" />
+        <line x1={padL} x2={W - padR} y1={axisY} y2={axisY} stroke={AXIS} strokeWidth="1.5" strokeLinecap="round" />
 
         {type === 'bar' && data.map((d, i) => {
           const bw = (plotW / n) * 0.62
@@ -59,7 +61,7 @@ export default function ChatChart({ spec }) {
               <rect x={bx} y={by} width={bw} height={bh} rx="5" fill="var(--blue)">
                 <title>{`${d.label}: ${d.value}`}</title>
               </rect>
-              <text x={bx + bw / 2} y={H - padB + 16} textAnchor="middle" fontSize="11" fill="var(--muted)">
+              <text x={bx + bw / 2} y={axisY + 20} textAnchor="middle" fontSize="12" fill="var(--muted)">
                 {String(d.label).slice(0, 8)}
               </text>
             </g>
@@ -80,10 +82,10 @@ export default function ChatChart({ spec }) {
               const cx = padL + (i * plotW) / Math.max(n - 1, 1)
               return (
                 <g key={i}>
-                  <circle cx={cx} cy={y(d.value)} r="4" fill="var(--orange)">
+                  <circle cx={cx} cy={y(d.value)} r="6" fill="var(--orange)">
                     <title>{`${d.label}: ${d.value}`}</title>
                   </circle>
-                  <text x={cx} y={H - padB + 16} textAnchor="middle" fontSize="11" fill="var(--muted)">
+                  <text x={cx} y={axisY + 20} textAnchor="middle" fontSize="12" fill="var(--muted)">
                     {String(d.label).slice(0, 8)}
                   </text>
                 </g>

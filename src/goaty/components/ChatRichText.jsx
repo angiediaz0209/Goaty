@@ -31,11 +31,16 @@ export default function ChatRichText({ text = '' }) {
   }
   if (last < text.length) nodes.push({ kind: 'text', value: text.slice(last) })
 
+  // When a chart is present, present each part as its own light-blue block
+  // (matching the reference); plain text messages stay in the single bubble.
+  const hasChart = nodes.some(n => n.kind === 'chart')
+
   return (
-    <div className="cv2-rich">
+    <div className={`cv2-rich${hasChart ? ' has-chart' : ''}`}>
       {nodes.map((node, i) => {
         if (node.kind === 'chart') return <ChatChart key={`c${node.key}`} spec={node.value} />
-        return <TextBlock key={`t${i}`} value={node.value} />
+        const block = <TextBlock key={`t${i}`} value={node.value} />
+        return hasChart ? <div key={`a${i}`} className="cv2-answer">{block}</div> : block
       })}
     </div>
   )

@@ -336,6 +336,14 @@ const actions = {
     if (data.error) throw new Error(data.error)
     return data
   },
+  clearChat() {
+    setState(s => ({
+      ...s,
+      chat: [
+        { id: 'c0-' + Date.now(), role: 'goaty', text: "Hi! I'm Goaty 🐐 Ready to learn something new today?", ts: Date.now() },
+      ],
+    }))
+  },
   addBadge(id) {
     setState(s => {
       if (s.profile.badges.includes(id)) return s
